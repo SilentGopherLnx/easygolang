@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func ReadTextURL(url string) (string, bool) {
+func NetReadUrlText(url string) (string, bool) {
 	resp, err1 := http.Get(url)
 	if err1 != nil {
 		return "", false
@@ -22,13 +22,23 @@ func ReadTextURL(url string) (string, bool) {
 	}
 }
 
-func CheckPortFree(port int, timeout_milliseconds int) bool {
+func NetPortIsFree(port int, timeout_milliseconds int) bool {
 	conn, _ := net.DialTimeout("tcp", net.JoinHostPort("", I2S(port)), time.Millisecond*time.Duration(timeout_milliseconds))
 	if conn != nil {
 		conn.Close()
 		return false
 	} else {
 		return true
+	}
+}
+
+func NetLocalAddr() {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		panic(err)
+	}
+	for _, addr := range addrs {
+		Prln(">>" + addr.Network() + " || " + addr.String())
 	}
 }
 

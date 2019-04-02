@@ -196,6 +196,7 @@ const FILE_INTERACTIVE_NEWNAME = "newname"
 
 const FILE_INTERACTIVE_ASK_EXIST = 0
 const FILE_INTERACTIVE_ASK_ERROR = 1
+const FILE_INTERACTIVE_ASK_PANIC = 2
 
 type FileInteractiveResponse struct {
 	Command    string
@@ -280,9 +281,11 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 		if can_do {
 			if !m.move || !m.disk_equal {
 				Prln("atom copy file: [" + path_src + " >> " + path_dst2 + "]")
+				size_old := m.counter_size.Get()
 				err := FileCopyAtom(path_src, path_dst2, m.counter_size, m.buffer)
 				if err != nil {
-					Prln(err.Error())
+					m.counter_size.Set(size_old)
+					Prln("copy err: " + err.Error())
 					ask = true
 					goto ask_label
 				} else {
@@ -294,7 +297,8 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 						ok2 := FileDelete(path_src)
 						if !ok2 {
 							Prln("deleting old file after move PROBLEM: [" + path_src + "]")
-							//?
+							m.chan_ask <- FileInteractiveRequest{Attempt: 0, FileName: path_src, AskType: FILE_INTERACTIVE_ASK_PANIC}
+							<-m.chan_cmd
 						}
 					}
 				}
@@ -316,7 +320,8 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 						ok2 := FileDelete(path_dst_back)
 						if !ok2 {
 							Prln("deleting old file after rename PROBLEM: [" + path_dst_back + "]")
-							//?
+							m.chan_ask <- FileInteractiveRequest{Attempt: 0, FileName: path_dst_back, AskType: FILE_INTERACTIVE_ASK_PANIC}
+							<-m.chan_cmd
 						}
 					}
 					if m.counter_files_done != nil {
@@ -326,16 +331,21 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 						m.counter_size.Add(f.Size())
 					}
 				} else {
+					fail_skip := false
 					if exist && path_dst == path_dst2 {
 						Prln("restoring of copy file of rename: [" + path_dst_back + " >> " + path_dst + "]")
 						ok2 := FileRename(path_dst_back, path_dst)
 						if !ok2 {
 							Prln("restoring of copy file of rename PROBLEM: [" + path_dst_back + " >> " + path_dst + "]")
-							//?
+							fail_skip = true
+							m.chan_ask <- FileInteractiveRequest{Attempt: 0, FileName: path_dst_back, AskType: FILE_INTERACTIVE_ASK_PANIC}
+							<-m.chan_cmd
 						}
 					}
-					ask = true
-					goto ask_label
+					if !fail_skip {
+						ask = true
+						goto ask_label
+					}
 				}
 			}
 		}

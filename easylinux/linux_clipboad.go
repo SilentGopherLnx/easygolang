@@ -28,7 +28,7 @@ func LinuxClipBoard_CopyFiles(files []*LinuxPath, cut_mode bool) {
 	for j := 0; j < len(files); j++ {
 		input = input + "\n" + files[j].GetUrl()
 	}
-	ExecCommandBytes([]byte(input+"\000"), "xclip", "-i", "-selection", "clipboard", "-t", "x-special/gnome-copied-files")
+	ExecCommandBytes([]byte(input+"\000"), 1000, "xclip", "-i", "-selection", "clipboard", "-t", "x-special/gnome-copied-files")
 }
 
 func LinuxClipBoard_PasteFiles() string {

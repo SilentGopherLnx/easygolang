@@ -110,43 +110,60 @@ func FileRename(path_src string, path_dst string) bool {
 	return true
 }
 
-func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error {
+func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error { //, dest_reopen bool
 	source, err1 := os.Open(src)
 	if err1 != nil {
-		return err1
+		return ErrorWithText("[src]" + err1.Error()) // err1
 	}
-	dest, err2 := os.Create(dst)
+	//dest, err2 := os.Create(dst)
+	dest, err2 := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC|os.O_APPEND, 0777)
 	if err2 != nil {
-		return err2
+		return ErrorWithText("[dst]" + err2.Error()) //err2
 	}
-	source_size := 1024
+	source_size := int64(1024)
 	st, err3 := source.Stat()
 	if err3 == nil {
-		source_size = int(st.Size())
+		source_size = st.Size()
 		if !st.Mode().IsRegular() {
 			return ErrorWithText("Not a regular file")
 		}
 	}
-	safe_buffer := MAXI(0, MINI(buffer_size, source_size))
+	safe_buffer := MAXI64(0, MINI64(int64(buffer_size), source_size))
 	buf := make([]byte, safe_buffer)
+	off := int64(0)
+	//closed := false
 	for {
 		n, err := source.Read(buf)
 		if err != nil && err != io.EOF {
-			return err
+			return ErrorWithText("[src_read]" + err.Error()) //err
 		}
 		if n == 0 {
 			break
 		}
+		// if closed {
+		// 	dest, err = os.OpenFile(dst, os.O_WRONLY|os.O_APPEND, 0777)
+		// 	if err != nil {
+		// 		return ErrorWithText("[dst_reopen]" + err.Error()) //err
+		// 	}
+		// }
 
-		if _, err := dest.Write(buf[:n]); err != nil {
-			return err
+		if _, err := dest.WriteAt(buf[:n], off); err != nil {
+			return ErrorWithText("[dst_write]" + err.Error()) //err
 		}
+		n64 := int64(n)
+		off += n64
 		if copied != nil {
-			copied.Add(int64(n))
+			copied.Add(n64)
 		}
+		// if dest_reopen {
+		// 	dest.Close()
+		// 	closed = true
+		// }
 	}
 	source.Close()
+	//if !dest_reopen {
 	dest.Close()
+	//}
 	return nil
 }
 

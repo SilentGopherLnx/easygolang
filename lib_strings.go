@@ -114,6 +114,17 @@ func StringTrim(str string) string {
 	return strings.TrimSpace(str)
 }
 
+func StringRemoveDoubleChar(str string, one_char string) string {
+	chars := one_char + one_char
+	str2 := ""
+	str3 := str
+	for str3 != str2 {
+		str2 = str3
+		str3 = StringReplace(str2, chars, one_char)
+	}
+	return str3
+}
+
 func StringCommonPrefix(a string, b string) string {
 	r1 := []rune(a)
 	r2 := []rune(b)

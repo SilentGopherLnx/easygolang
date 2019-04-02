@@ -112,7 +112,7 @@ func ExecQuote(s string) string {
 	return s
 }
 
-func ExecCommandBytes(input []byte, exe_name string, args ...string) ([]byte, []byte, string) {
+func ExecCommandBytes(input []byte, timeout_ms int, exe_name string, args ...string) ([]byte, []byte, string) {
 	cmd := exec.Command(exe_name, args...)
 	var buffer_out bytes.Buffer
 	var buffer_err bytes.Buffer
@@ -137,6 +137,12 @@ func ExecCommandBytes(input []byte, exe_name string, args ...string) ([]byte, []
 		//cmd.Wait()
 		Prln("cmd.Wait()?")
 	} else {
+		if timeout_ms > 0 {
+			go func() {
+				SleepMS(timeout_ms)
+				cmd.Process.Kill()
+			}()
+		}
 		err = cmd.Run()
 	}
 
@@ -154,6 +160,6 @@ func ExecCommandBytes(input []byte, exe_name string, args ...string) ([]byte, []
 }
 
 func ExecCommand(exe_name string, args ...string) (string, string, string) {
-	r1, r2, err := ExecCommandBytes([]byte{}, exe_name, args...)
+	r1, r2, err := ExecCommandBytes([]byte{}, 0, exe_name, args...)
 	return string(r1), string(r2), err
 }

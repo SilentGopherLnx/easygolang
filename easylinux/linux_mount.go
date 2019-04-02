@@ -47,9 +47,9 @@ func LinuxFolderIsMountPoint(list [][2]string, path string) bool {
 	return false
 }
 
-func LinuxFilePartition(list [][2]string, path string) string {
+func LinuxFilePartition(list [][2]string, path string) (string, string) {
 	if path == "" {
-		return ""
+		return "", ""
 	}
 	list2 := make([][2]string, len(list))
 	copy(list2, list)
@@ -66,8 +66,8 @@ func LinuxFilePartition(list [][2]string, path string) string {
 	for j := 0; j < len(list2); j++ {
 		//Prln(I2S(StringFind(path, list2[j][1])))
 		if StringFind(path, list2[j][1]) == 1 {
-			return list2[j][0]
+			return list2[j][0], list2[j][1]
 		}
 	}
-	return ""
+	return "", ""
 }
