@@ -110,6 +110,7 @@ func FileRename(path_src string, path_dst string) bool {
 	return true
 }
 
+//https://stackoverflow.com/questions/1821811/how-to-read-write-from-to-file-using-go
 func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error { //, dest_reopen bool
 	source, err1 := os.Open(src)
 	if err1 != nil {

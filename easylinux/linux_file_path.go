@@ -26,6 +26,7 @@ func TestLinuxPath() {
 		{"smb://127.0.0.1/sharedfolder/", "/run/user/1000/gvfs/smb-share:server=127.0.0.1,share=sharedfolder/"},
 		{"davs://username@webdav.yandex.ru/", "/run/user/1000/gvfs/dav:host=webdav.yandex.ru,ssl=true,user=username/"},
 		{"ftp://anonymous@127.0.0.1/", "/run/user/1000/gvfs/ftp:host=127.0.0.1,user=anonymous/"},
+		{"ftp://qmolnas.local:169/", "/run/user/1000/gvfs/ftp:host=qmolnas.local,port=169/"},
 		{"mtp://%5Busb%3A001,006%5D/", "/run/user/1000/gvfs/mtp:host=%5Busb%3A001%2C006%5D/"},
 		{"gphoto2://%5Busb%3A001,007%5D/", "/run/user/1000/gvfs/gphoto2:host=%5Busb%3A001%2C007%5D/"},
 	}
@@ -208,10 +209,35 @@ func linuxFilePathProtocol_VisualToReal(path_visual string) (string, bool) {
 			pr = StringPart(protocol, 1, StringLength(protocol)-1)
 		}
 		if len(path_arr) > 1 {
+			user := ""
+			host := ""
+			port := ""
 			ab := StringSplit(path_arr[0], "@")
 			if len(ab) == 2 {
-				return linux_mount_gvfs + pr + ":host=" + UrlQueryEscape(ab[1]) + ssl + ",user=" + UrlQueryEscape(ab[0]) + "/" + StringJoin(path_arr[1:], "/"), true
+				host = ab[1]
+				user = ab[0]
+				ab = StringSplit(user, ":")
+				if len(ab) == 2 {
+					user = ab[0]
+					port = ab[1]
+				}
+			} else {
+				host = path_arr[0]
+				ab = StringSplit(host, ":")
+				if len(ab) == 2 {
+					host = ab[0]
+					port = ab[1]
+				}
 			}
+			if len(user) > 0 {
+				user = ",user=" + UrlQueryEscape(user)
+			}
+			if len(port) > 0 {
+				port = ",port=" + UrlQueryEscape(port)
+			}
+			host = UrlQueryEscape(host)
+			return linux_mount_gvfs + pr + ":host=" + host + ssl + user + port + "/" + StringJoin(path_arr[1:], "/"), true
+
 		}
 	}
 	return "/", false
@@ -250,11 +276,18 @@ func linuxFilePathProtocol_RealToVisual(path_real string) string {
 			case "dav", "ftp":
 				hostname := StringTrim(q.Get("host"))
 				username := StringTrim(q.Get("user"))
+				port := StringTrim(q.Get("port"))
 				ssl := ""
 				if StringFind(protocol_args, ",ssl=true,") > 0 {
 					ssl = "s"
 				}
-				return protocol + ssl + "://" + username + "@" + hostname + "/" + path2
+				if len(username) > 0 {
+					username += "@"
+				}
+				if len(port) > 0 {
+					port = ":" + port
+				}
+				return protocol + ssl + "://" + username + hostname + port + "/" + path2
 			}
 		}
 	} else {
