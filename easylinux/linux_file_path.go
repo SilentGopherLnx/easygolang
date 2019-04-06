@@ -26,7 +26,7 @@ func TestLinuxPath() {
 		{"smb://127.0.0.1/sharedfolder/", "/run/user/1000/gvfs/smb-share:server=127.0.0.1,share=sharedfolder/"},
 		{"davs://username@webdav.yandex.ru/", "/run/user/1000/gvfs/dav:host=webdav.yandex.ru,ssl=true,user=username/"},
 		{"ftp://anonymous@127.0.0.1/", "/run/user/1000/gvfs/ftp:host=127.0.0.1,user=anonymous/"},
-		{"ftp://qmolnas.local:169/", "/run/user/1000/gvfs/ftp:host=qmolnas.local,port=169/"},
+		{"ftp://smbnas.local:169/", "/run/user/1000/gvfs/ftp:host=smbnas.local,port=169/"},
 		{"mtp://%5Busb%3A001,006%5D/", "/run/user/1000/gvfs/mtp:host=%5Busb%3A001%2C006%5D/"},
 		{"gphoto2://%5Busb%3A001,007%5D/", "/run/user/1000/gvfs/gphoto2:host=%5Busb%3A001%2C007%5D/"},
 	}
