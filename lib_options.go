@@ -4,6 +4,8 @@ const FILE_COMMENT = "#"
 
 const OPTIONS_TYPE_STRING = "String"
 const OPTIONS_TYPE_ARRAY = "Array"
+const OPTIONS_TYPE_BOOLEAN = "Boolean"
+const OPTIONS_TYPE_INTEGER = "Integer"
 
 type OptionsStorageItem struct {
 	value_storaged string
@@ -37,6 +39,18 @@ func (s *OptionsStorage) AddRecord_Array(order int, key string, value_default st
 	s.arr[key] = &OptionsStorageItem{value_type: OPTIONS_TYPE_ARRAY, value_storaged: value_default, value_default: value_default, values_allowed: v, key_comment: key_comment, file_order: order}
 }
 
+func (s *OptionsStorage) AddRecord_Boolean(order int, key string, value_default bool, key_comment string) {
+	bv := B2S_TF(value_default)
+	s.arr[key] = &OptionsStorageItem{value_type: OPTIONS_TYPE_BOOLEAN, value_storaged: bv, value_default: bv, key_comment: key_comment, file_order: order}
+}
+
+func (s *OptionsStorage) AddRecord_Integer(order int, key string, value_default int, value_min int, value_max int, key_comment string) {
+	iv := I2S(value_default)
+	imin := float64(value_min)
+	imax := float64(value_max)
+	s.arr[key] = &OptionsStorageItem{value_type: OPTIONS_TYPE_INTEGER, value_storaged: iv, value_default: iv, key_comment: key_comment, file_order: order, value_min: imin, value_max: imax, value_step: 1.0}
+}
+
 func (s *OptionsStorage) GetRecordType(key string) string {
 	item := s.arr[key]
 	if item != nil {
@@ -51,6 +65,14 @@ func (s *OptionsStorage) GetRecordValuesArray(key string) []string {
 		return item.values_allowed
 	}
 	return []string{}
+}
+
+func (s *OptionsStorage) GetRecordMinMaxStep(key string) (float64, float64, float64) {
+	item := s.arr[key]
+	if item != nil {
+		return item.value_min, item.value_max, item.value_step
+	}
+	return -999.0, 999.0, 1.0
 }
 
 func (s *OptionsStorage) GetRecordComment(key string) string {
@@ -76,12 +98,27 @@ func (s *OptionsStorage) RecordsValues_Load(fname string) {
 				value := StringPart(str, ind+1, 0)
 				item := s.arr[key]
 				if item != nil {
-					item.value_storaged = StringReplace(StringReplace(value, "\\n", "\n"), "\\\\", "\\")
+					strvalue := StringReplace(StringReplace(value, "\\n", "\n"), "\\\\", "\\")
 					switch item.value_type {
 					case OPTIONS_TYPE_STRING:
-
+						item.value_storaged = strvalue
 					case OPTIONS_TYPE_ARRAY:
-						s.SetArrayIndex(key, s.GetArrayIndex(key))
+						item.value_storaged = strvalue
+						s.ValueSetArrayIndex(key, s.ValueGetArrayIndex(key))
+					case OPTIONS_TYPE_BOOLEAN:
+						if strvalue == B2S_TF(true) || strvalue == B2S_TF(false) {
+							item.value_storaged = strvalue
+						} else {
+							item.value_storaged = item.value_default
+						}
+					case OPTIONS_TYPE_INTEGER:
+						intv := 0
+						if IsInt(strvalue) {
+							intv = S2I(strvalue)
+						} else {
+							intv = S2I(item.value_default)
+						}
+						s.ValueSetInteger(key, intv)
 					}
 				}
 			}
@@ -112,14 +149,14 @@ func (s *OptionsStorage) GetRecordsKeys() []string {
 	return keys
 }
 
-func (s *OptionsStorage) SetString(key string, value string) {
+func (s *OptionsStorage) ValueSetString(key string, value string) {
 	item := s.arr[key]
 	if item != nil {
 		item.value_storaged = value
 	}
 }
 
-func (s *OptionsStorage) GetString(key string) string {
+func (s *OptionsStorage) ValueGetString(key string) string {
 	item := s.arr[key]
 	if item != nil {
 		return item.value_storaged
@@ -127,7 +164,7 @@ func (s *OptionsStorage) GetString(key string) string {
 	return ""
 }
 
-func (s *OptionsStorage) SetArrayIndex(key string, value int) {
+func (s *OptionsStorage) ValueSetArrayIndex(key string, value int) {
 	item := s.arr[key]
 	if item != nil {
 		if value > -1 && value < len(item.values_allowed) {
@@ -143,7 +180,7 @@ func (s *OptionsStorage) SetArrayIndex(key string, value int) {
 	}
 }
 
-func (s *OptionsStorage) GetArrayIndex(key string) int {
+func (s *OptionsStorage) ValueGetArrayIndex(key string) int {
 	item := s.arr[key]
 	if item != nil {
 		ind := StringInArray(item.value_storaged, item.values_allowed)
@@ -155,6 +192,36 @@ func (s *OptionsStorage) GetArrayIndex(key string) int {
 				return ind_def
 			}
 		}
+	}
+	return 0
+}
+
+func (s *OptionsStorage) ValueSetBoolean(key string, value bool) {
+	item := s.arr[key]
+	if item != nil {
+		item.value_storaged = B2S_TF(value)
+	}
+}
+
+func (s *OptionsStorage) ValueGetBoolean(key string) bool {
+	item := s.arr[key]
+	if item != nil {
+		return item.value_storaged == B2S_TF(true)
+	}
+	return false
+}
+
+func (s *OptionsStorage) ValueSetInteger(key string, value int) {
+	item := s.arr[key]
+	if item != nil {
+		item.value_storaged = I2S(MINI(int(item.value_max), MAXI(int(item.value_min), value)))
+	}
+}
+
+func (s *OptionsStorage) ValueGetInteger(key string) int {
+	item := s.arr[key]
+	if item != nil {
+		return S2I(item.value_storaged)
 	}
 	return 0
 }

@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func CheckRootLinux() int {
+func LinuxRoot_Check() int {
 	cmd := exec.Command("id", "-u")
 	output, err := cmd.Output()
 
@@ -38,7 +38,7 @@ func CheckRootLinux() int {
 	}
 }
 
-func StartRootLinux(app string, cmd string) {
+func LinuxRoot_Start(app string, cmd string) {
 	//    pkexec /mnt/dm-1/golang/code/ssh/ssh
 	/*dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {

@@ -191,6 +191,17 @@ func GTK_LabelWrapMode(label *gtk.Label, lines int) {
 	label.SetLines(lines)
 }
 
+func GTK_SpinnerActive(spinner *gtk.Spinner, def bool) bool {
+	v, err := spinner.GetProperty("active")
+	if err == nil {
+		vb, ok := v.(bool)
+		if ok {
+			return vb
+		}
+	}
+	return def
+}
+
 // ===========
 
 func GTK_Dialog(w *gtk.Window, title string) (*gtk.Dialog, *gtk.Box) {
@@ -199,4 +210,64 @@ func GTK_Dialog(w *gtk.Window, title string) (*gtk.Dialog, *gtk.Box) {
 	dial.SetTitle(title)
 	box, _ := dial.GetContentArea()
 	return dial, box
+}
+
+func GTK_OptionsWidget(optst *OptionsStorage, key string, changed_event func(key string)) gtk.IWidget {
+	switch optst.GetRecordType(key) {
+	case OPTIONS_TYPE_STRING:
+		widget, _ := gtk.EntryNew()
+		widget.SetText(optst.ValueGetString(key))
+		widget.Connect("changed", func() { //https://developer.gnome.org/gtk3/unstable/GtkEditable.html#GtkEditable-changed
+			Prln("EVENT_FOR_TEXTENTRY: changed")
+			text, _ := widget.GetText()
+			optst.ValueSetString(key, text)
+			if changed_event != nil {
+				changed_event(key)
+			}
+		})
+		widget.SetHExpand(true)
+		return widget
+	case OPTIONS_TYPE_ARRAY:
+		widget, _ := gtk.ComboBoxTextNew() //https://developer.gnome.org/gtk3/stable/GtkComboBoxText.html
+		values := optst.GetRecordValuesArray(key)
+		for j := 0; j < len(values); j++ {
+			widget.AppendText(values[j])
+		}
+		widget.SetActive(optst.ValueGetArrayIndex(key))
+		widget.Connect("changed", func() {
+			Prln("EVENT_FOR_COMBOBOX: changed")
+			optst.ValueSetArrayIndex(key, widget.GetActive())
+			if changed_event != nil {
+				changed_event(key)
+			}
+		})
+		widget.SetHExpand(true)
+		return widget
+	case OPTIONS_TYPE_BOOLEAN:
+		widget, _ := gtk.CheckButtonNew()
+		widget.SetActive(optst.ValueGetBoolean(key))
+		widget.Connect("clicked", func() {
+			Prln("EVENT_FOR_CHECKBUTTON: clicked")
+			optst.ValueSetBoolean(key, widget.GetActive())
+			if changed_event != nil {
+				changed_event(key)
+			}
+		})
+		widget.SetHExpand(true)
+		return widget
+	case OPTIONS_TYPE_INTEGER:
+		minv, maxv, stepv := optst.GetRecordMinMaxStep(key)
+		widget, _ := gtk.SpinButtonNewWithRange(minv, maxv, stepv)
+		widget.SetValue(float64(optst.ValueGetInteger(key)))
+		widget.Connect("changed", func() {
+			Prln("EVENT_FOR_SPINBUTTON: changed")
+			optst.ValueSetInteger(key, RoundF(widget.GetValue()))
+			if changed_event != nil {
+				changed_event(key)
+			}
+		})
+		widget.SetHExpand(true)
+		return widget
+	}
+	return nil
 }

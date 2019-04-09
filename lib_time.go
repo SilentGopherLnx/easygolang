@@ -16,7 +16,7 @@ func TimeSeconds(start Time) float64 {
 	return float64(elapsed / time.Second)
 }
 
-func TimeSeconds2(start Time, finished Time) float64 {
+func TimeSecondsSub(start Time, finished Time) float64 {
 	f := time.Time(finished)
 	delta := f.Sub(time.Time(start))
 	return delta.Seconds()
