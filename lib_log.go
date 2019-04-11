@@ -76,3 +76,11 @@ func TypeOf(v interface{}) string {
 func TypeDetail(t interface{}) string {
 	return fmt.Sprintf("%#v\n", t)
 }
+
+func AboutVersion(version string) {
+	args := AppRunArgs()
+	if len(args) == 2 && args[1] == "-v" {
+		Prln(version)
+		AppExit(0)
+	}
+}

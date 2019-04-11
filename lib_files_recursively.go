@@ -257,7 +257,7 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 				if exist {
 					m.chan_ask <- FileInteractiveRequest{Attempt: num_ask_this, FileName: path_dst, AskType: FILE_INTERACTIVE_ASK_EXIST}
 				} else {
-					m.chan_ask <- FileInteractiveRequest{Attempt: num_ask_this, FileName: path_src, AskType: FILE_INTERACTIVE_ASK_ERROR}
+					m.chan_ask <- FileInteractiveRequest{Attempt: num_ask_this - 1, FileName: path_src, AskType: FILE_INTERACTIVE_ASK_ERROR}
 				}
 				tcmd := <-m.chan_cmd
 				if len(tcmd.Command) > 0 {
@@ -287,6 +287,7 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 					m.counter_size.Set(size_old)
 					Prln("copy err: " + err.Error())
 					ask = true
+					cmd = ""
 					goto ask_label
 				} else {
 					if m.counter_files_done != nil {
