@@ -20,21 +20,25 @@ func StringLength(str string) int {
 	return len(runes)
 }
 
-//from 1
+//result from 1, end can be 0
 func StringPart(str string, start int, end int) string {
 	runes := []rune(str)
 	rsize := len(runes)
 	if rsize > 0 {
-		start0 := MINI(MAXI(start, 1), rsize)
-		end0 := MINI(MAXI(end, 1), rsize)
-		if end > 0 {
-			if end0 >= start0 {
-				return string(runes[start0-1 : end0])
+		start0 := MAXI(start, 1)
+		if start0 <= rsize {
+			end0 := MINI(MAXI(end, 1), rsize)
+			if end > 0 {
+				if end0 >= start0 {
+					return string(runes[start0-1 : end0])
+				} else {
+					return ""
+				}
 			} else {
-				return ""
+				return string(runes[start0-1:])
 			}
 		} else {
-			return string(runes[start0-1:])
+			return ""
 		}
 	} else {
 		return ""

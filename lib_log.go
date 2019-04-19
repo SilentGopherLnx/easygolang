@@ -81,6 +81,9 @@ func AboutVersion(version string) {
 	args := AppRunArgs()
 	if len(args) == 2 && args[1] == "-v" {
 		Prln(version)
+		Prln("app  folder:[" + FolderLocation_App() + "]")
+		Prln("work folder:[" + FolderLocation_WorkDir() + "]")
+		Prln("home folder:[" + FolderLocation_UserHome() + "]")
 		AppExit(0)
 	}
 }

@@ -69,7 +69,14 @@ func FolderLocation_App() string {
 	}
 	strs2 := strs[:len(strs)-1]
 	location = StringJoin(strs2, slash)
-	return FolderPathEndSlash(location)
+	location = FolderPathEndSlash(location)
+	//Prln(">" + location + "]")
+	if StringPart(location, 1, 2) != "./" { //home
+		return location
+	} else {
+		location = FolderLocation_WorkDir() + StringPart(location, 3, 0)
+		return FolderPathEndSlash(location)
+	}
 }
 
 func Folder_ListFiles(dirname string) ([]os.FileInfo, error) {
