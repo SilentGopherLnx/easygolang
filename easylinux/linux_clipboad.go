@@ -32,6 +32,7 @@ func LinuxClipBoard_CopyFiles(files []*LinuxPath, cut_mode bool) {
 }
 
 func LinuxClipBoard_PasteFiles() string {
+	//xclip -o -selection clipboard -t "x-special/gnome-copied-files"
 	res, _, _ := ExecCommand("xclip", "-o", "-selection", "clipboard", "-t", "x-special/gnome-copied-files")
 	//Prln(res)
 	res = StringReplace(res, "\r", "")

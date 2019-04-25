@@ -64,7 +64,7 @@ func GTK_Childs(w GTK_RemoveDestroyAble, remove_all bool, destroy_all bool) []gt
 				arr = append(arr, el)
 			}
 		default:
-			Prln("GTK_Childs ERROR:" + TypeOf(item))
+			Prln("GTK_Childs ERROR:" + Log_TypeOf(item))
 		}
 	})
 	return arr

@@ -2,7 +2,10 @@ package easygolang
 
 import (
 	"fmt"
-	"reflect" //typeof
+	"reflect"
+	"runtime"
+	"strings"
+	"testing"
 )
 
 type Log struct {
@@ -12,7 +15,7 @@ type Log struct {
 	MaxSize int
 }
 
-func NewLog(MaxSize int) *Log {
+func LogNew(MaxSize int) *Log {
 	return &Log{Arr: [][]string{}, Counter: 1, Mutex: NewSyncMutex(), MaxSize: MaxSize}
 }
 
@@ -58,7 +61,7 @@ func (log *Log) Print(separator string, reverse bool) string {
 
 // ====================
 
-func TypeOf(v interface{}) string {
+func Log_TypeOf(v interface{}) string {
 	if v == nil {
 		return "nil-i"
 	}
@@ -73,17 +76,53 @@ func TypeOf(v interface{}) string {
 	return s
 }
 
-func TypeDetail(t interface{}) string {
+func Log_TypeDetail(t interface{}) string {
 	return fmt.Sprintf("%#v\n", t)
 }
 
 func AboutVersion(version string) {
-	args := AppRunArgs()
-	if len(args) == 2 && args[1] == "-v" {
+	if AppHasArg("-v") {
 		Prln(version)
 		Prln("app  folder:[" + FolderLocation_App() + "]")
 		Prln("work folder:[" + FolderLocation_WorkDir() + "]")
 		Prln("home folder:[" + FolderLocation_UserHome() + "]")
 		AppExit(0)
 	}
+}
+
+func AppHasArg(v string) bool {
+	args := AppRunArgs()
+	for j := 1; j < len(args); j++ {
+		if args[j] == v {
+			return true
+		}
+	}
+	return false
+}
+
+// ==================
+
+func Log_WhereAmI() string {
+	return whereAmI()
+}
+
+func Log_TestFailed(t *testing.T) {
+	Prln(whereAmI())
+	t.Fail()
+}
+
+func whereAmI(depthList ...int) string {
+	var depth int
+	if depthList == nil {
+		depth = 1
+	} else {
+		depth = depthList[0]
+	}
+	depth++
+	function, file, line, _ := runtime.Caller(depth)
+	ind := strings.LastIndex(file, "/")
+	if ind != -1 {
+		file = file[ind+1:]
+	}
+	return fmt.Sprintf("File: %s  Function: %s Line: %d", file, runtime.FuncForPC(function).Name(), line)
 }

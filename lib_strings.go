@@ -11,10 +11,6 @@ func StringFormat(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
 
-func StringFill(str string, length int) string {
-	return fmt.Sprintf("%"+I2S(length)+"s", str)
-}
-
 func StringLength(str string) int {
 	runes := []rune(str)
 	return len(runes)
@@ -56,6 +52,10 @@ func StringEnd(str string, count int) string {
 		return str
 	}
 	return string(runes[rsize-esize:])
+}
+
+func StringFill(str string, length int) string {
+	return fmt.Sprintf("%"+I2S(length)+"s", str)
 }
 
 func StringClip(str string, maxlen int) string {

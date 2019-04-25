@@ -15,36 +15,6 @@ func init() {
 	uid, _, _ := GetPC_UserUidLoginName()
 	linux_mount_gvfs = "/run/user/" + uid + "/gvfs/"
 	linux_mount_gvfs_len = len(linux_mount_gvfs)
-
-	//TestLinuxPath()
-}
-
-func TestLinuxPath() {
-
-	arr := [][2]string{
-		{"file:///mnt/dm-1/", "/mnt/dm-1/"},
-		{"smb://127.0.0.1/sharedfolder/", "/run/user/1000/gvfs/smb-share:server=127.0.0.1,share=sharedfolder/"},
-		{"davs://username@webdav.yandex.ru/", "/run/user/1000/gvfs/dav:host=webdav.yandex.ru,ssl=true,user=username/"},
-		{"ftp://anonymous@127.0.0.1/", "/run/user/1000/gvfs/ftp:host=127.0.0.1,user=anonymous/"},
-		{"ftp://smbnas.local:169/", "/run/user/1000/gvfs/ftp:host=smbnas.local,port=169/"},
-		{"mtp://%5Busb%3A001,006%5D/", "/run/user/1000/gvfs/mtp:host=%5Busb%3A001%2C006%5D/"},
-		{"gphoto2://%5Busb%3A001,007%5D/", "/run/user/1000/gvfs/gphoto2:host=%5Busb%3A001%2C007%5D/"},
-	}
-
-	Prln("TEST PATH START")
-	for j := 0; j < len(arr); j++ {
-		path_url := NewLinuxPath(true)
-		path_real := NewLinuxPath(true)
-		path_url.SetUrl(arr[j][0])
-		path_real.SetReal(arr[j][1])
-		if arr[j][0] != path_real.GetUrl() || path_real.GetParseProblems() {
-			Prln("TEST[" + I2S(j) + "]#1: {" + arr[j][0] + "} != converted version {" + path_real.GetUrl() + "} " + B2S_YN(path_real.GetParseProblems()))
-		}
-		if arr[j][1] != path_url.GetReal() || path_url.GetParseProblems() {
-			Prln("TEST[" + I2S(j) + "]#2: {" + arr[j][1] + "} != converted version {" + path_url.GetReal() + "} " + B2S_YN(path_url.GetParseProblems()))
-		}
-	}
-	Prln("TEST PATH END")
 }
 
 type LinuxPath struct {
@@ -156,8 +126,11 @@ func removeFileProtocol(path string) string {
 	return StringPart(path, 8, 0)
 }
 
+//what is correct convertation?
 func linuxFilePath_Escape(path string) string {
 	esc := UrlQueryEscape(path)
+	esc = StringReplace(esc, "+", "%20")
+	esc = StringReplace(esc, "%2B", "+")
 	esc = StringReplace(esc, "%3A", ":")
 	esc = StringReplace(esc, "%2F", "/")
 	//??
@@ -172,6 +145,7 @@ func linuxFilePath_EscapeArgs(args string) string {
 	return esc
 }
 
+//what is correct convertation?
 func linuxFilePath_Unescape(path string) string {
 	unesc := path
 	//unesc := UrlQueryUnescape(unesc)
@@ -179,6 +153,7 @@ func linuxFilePath_Unescape(path string) string {
 	// unesc = StringReplace(unesc, ",", "%2C")
 	// unesc = StringReplace(unesc, ":", "%3A")
 	// unesc = StringReplace(unesc, "=", "%3D")
+	unesc = StringReplace(unesc, "+", "%2B")
 	unesc = UrlQueryUnescape(unesc)
 	return unesc
 }
