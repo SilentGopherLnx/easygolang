@@ -365,17 +365,17 @@ func (m *folderWalker_copymove) WithFolderBefore(f os.FileInfo, is_mount bool, p
 }
 
 func (m *folderWalker_copymove) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
-	//if m.move {
-	Prln("delete folder after move:" + path_src)
-	list, err := Folder_ListFiles(path_src)
-	if err == nil && len(list) == 0 {
-		ok := FileDelete(path_src)
-		if !ok {
-			m.chan_ask <- FileInteractiveRequest{Attempt: 0, FileName: path_src, AskType: FILE_INTERACTIVE_ASK_PANIC}
-			<-m.chan_cmd
+	if m.move {
+		Prln("delete folder after move:" + path_src)
+		list, err := Folder_ListFiles(path_src)
+		if err == nil && len(list) == 0 {
+			ok := FileDelete(path_src)
+			if !ok {
+				m.chan_ask <- FileInteractiveRequest{Attempt: 0, FileName: path_src, AskType: FILE_INTERACTIVE_ASK_PANIC}
+				<-m.chan_cmd
+			}
 		}
 	}
-	//}
 }
 
 func (m *folderWalker_copymove) WithLink(f os.FileInfo, is_folder bool, path_src string, path_dst string) bool {

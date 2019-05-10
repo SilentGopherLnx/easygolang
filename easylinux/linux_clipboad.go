@@ -21,14 +21,18 @@ func LinuxClipboard_SetText(txt string) {
 
 func LinuxClipBoard_CopyFiles(files []*LinuxPath, cut_mode bool) {
 	// echo -e "copy\nfile:///mnt/dm-1/golang/my_code/screenshot.png\0"| xclip -i -selection clipboard -t x-special/gnome-copied-files
-	input := "copy"
-	if cut_mode {
-		input = "cut"
+	if len(files) > 0 {
+		input := "copy"
+		if cut_mode {
+			input = "cut"
+		}
+		for j := 0; j < len(files); j++ {
+			input = input + "\n" + files[j].GetUrl()
+		}
+		ExecCommandBytes([]byte(input+"\000"), 1000, "xclip", "-i", "-selection", "clipboard", "-t", "x-special/gnome-copied-files")
+	} else {
+		Prln("COPY/CUT LIST EMPTY")
 	}
-	for j := 0; j < len(files); j++ {
-		input = input + "\n" + files[j].GetUrl()
-	}
-	ExecCommandBytes([]byte(input+"\000"), 1000, "xclip", "-i", "-selection", "clipboard", "-t", "x-special/gnome-copied-files")
 }
 
 func LinuxClipBoard_PasteFiles() string {

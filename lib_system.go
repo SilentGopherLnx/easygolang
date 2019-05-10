@@ -45,6 +45,10 @@ func FreeOSMemory() {
 	debug.FreeOSMemory()
 }
 
+func RuntimeLockOSThread() {
+	runtime.LockOSThread()
+}
+
 func Prln(v string) {
 	fmt.Println(v)
 }

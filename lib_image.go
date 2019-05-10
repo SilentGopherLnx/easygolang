@@ -160,7 +160,12 @@ func BlendColors(argb_back [4]float64, argb_over [4]float64, maxv float64) [4]in
 }
 
 func ImageAddOver(img1 *image.RGBA, img2 image.Image, x int, y int) {
-	draw.Draw(img1, img1.Bounds(), img2, image.Point{X: -x, Y: -y}, draw.Over)
+	if img1 != nil && !InterfaceNil(img2) {
+		// wh2 := img2.Bounds().Max
+		// if wh2.X > 0 && wh2.Y > 0 {
+		draw.Draw(img1, img1.Bounds(), img2, image.Point{X: -x, Y: -y}, draw.Over)
+		//}
+	}
 	//h := img2.Bounds().Max.Y
 	//image.Point{X: x, Y: h - y}
 	/*if img1 != nil && img2 != nil {

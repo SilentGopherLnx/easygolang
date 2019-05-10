@@ -7,7 +7,6 @@ import (
 )
 
 func Test_LinuxPath(t *testing.T) {
-
 	arr := [][2]string{
 		{"file:///", "/"},
 		{"file:///mnt/dm-1/", "/mnt/dm-1/"},
