@@ -105,16 +105,16 @@ func FileMake(pathname string) bool {
 	}
 }
 
-func FileRename(path_src string, path_dst string) bool {
+func FileRename(path_src string, path_dst string) (bool, string) {
 	if FileExists(path_dst) {
-		return false
+		return false, "Not exist"
 	}
 	err := os.Rename(path_src, path_dst)
 	if err != nil {
-		Prln(err.Error())
-		return false
+		//Prln(err.Error())
+		return false, err.Error()
 	}
-	return true
+	return true, ""
 }
 
 //https://stackoverflow.com/questions/1821811/how-to-read-write-from-to-file-using-go
@@ -233,15 +233,18 @@ func FileFindFreeName(folderpath string, filename string, copylabel string, ext 
 	return ""
 }
 
-func FileNameForCopy(path_dst string, copy_label string) string {
+func FileNameForCopy(path_dst string, copy_label string, isdir bool) string {
 	path2, name2 := FileSplitPathAndName(path_dst)
-	name3, ext := FileSeparateNumberedName(name2, copy_label)
+	name3, ext := FileSeparateNumberedName(name2, copy_label, isdir)
 	name4 := FileFindFreeName(path2, name3, copy_label, ext)
 	return path2 + name4
 }
 
-func FileSeparateNumberedName(filename string, copylabel string) (string, string) {
-	ext := FileExtension(filename)
+func FileSeparateNumberedName(filename string, copylabel string, isdir bool) (string, string) {
+	ext := ""
+	if !isdir {
+		ext = FileExtension(filename)
+	}
 	name := filename
 	if len(ext) > 0 {
 		name = StringPart(filename, 1, StringLength(filename)-StringLength(ext)-1)

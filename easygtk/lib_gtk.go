@@ -4,7 +4,7 @@ import (
 	. "github.com/SilentGopherLnx/easygolang"
 
 	"github.com/gotk3/gotk3/cairo"
-	"github.com/gotk3/gotk3/gdk"
+	//	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/gotk3/gotk3/pango"
@@ -204,14 +204,6 @@ func GTK_SpinnerActive(spinner *gtk.Spinner, def bool) bool {
 
 // ===========
 
-func GTK_Dialog(w *gtk.Window, title string) (*gtk.Dialog, *gtk.Box) {
-	dial, _ := gtk.DialogNew()
-	dial.SetTransientFor(w)
-	dial.SetTitle(title)
-	box, _ := dial.GetContentArea()
-	return dial, box
-}
-
 func GTK_OptionsWidget(optst *OptionsStorage, key string, changed_event func(key string)) gtk.IWidget {
 	switch optst.GetRecordType(key) {
 	case OPTIONS_TYPE_STRING:
@@ -270,30 +262,6 @@ func GTK_OptionsWidget(optst *OptionsStorage, key string, changed_event func(key
 		return widget
 	}
 	return nil
-}
-
-func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int) {
-	if event != nil {
-		eventbutton := &gdk.EventButton{event}
-		return int(eventbutton.ButtonVal()), int(eventbutton.X()), int(eventbutton.Y())
-	}
-	return 0, 0, 0
-}
-
-func GTK_ScrollGetValues(scroll *gtk.ScrolledWindow) (int, int) {
-	if scroll != nil {
-		dx := int(scroll.GetHAdjustment().GetValue())
-		dy := int(scroll.GetVAdjustment().GetValue())
-		return dx, dy
-	}
-	return 0, 0
-}
-
-func GTK_ScrollReset(scroll *gtk.ScrolledWindow) {
-	if scroll != nil {
-		scroll.GetHAdjustment().SetValue(0)
-		scroll.GetVAdjustment().SetValue(0)
-	}
 }
 
 // gboolean is_visible_in (GtkWidget *child, GtkWidget *scrolled){

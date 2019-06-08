@@ -6,6 +6,14 @@ import (
 	. "github.com/SilentGopherLnx/easygolang"
 )
 
+// func TestMain(m *testing.M) {
+// 	Prln("Start!")
+// }
+
+// func Bench_all() {
+// 	Prln("?")
+// }
+
 func Test_StringPart(t *testing.T) {
 	if StringPart("12ABC", 2, 3) != "2A" {
 		Log_TestFailed(t)

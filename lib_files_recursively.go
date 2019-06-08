@@ -2,11 +2,12 @@ package easygolang
 
 import (
 	"os"
+	//	"path/filepath"
 )
 
 type IFolderWalker interface {
 	WithFile(f os.FileInfo, regular bool, path_src string, path_dst string)
-	WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string)
+	WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string
 	WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string)
 	WithLink(f os.FileInfo, is_folder bool, path_src string, path_dst string) bool
 }
@@ -28,15 +29,19 @@ func FoldersRecursively_Walk(mount_list [][2]string, file_or_dir os.FileInfo, pa
 			if is_mount {
 				deep2 += 1
 			}
-			method.WithFolderBefore(file_or_dir, is_mount, path_src, path_dst)
+			path_dst = method.WithFolderBefore(file_or_dir, is_mount, path_src, path_dst, deep)
 			if deep == 0 || !is_mount {
+				//Prln(">>1!!" + path_src)
 				sub_files, err := Folder_ListFiles(path_src)
 				folder_err := false
 				if err == nil {
+					//Prln(">>2!!" + path_src)
 					for j := 0; j < len(sub_files); j++ {
+						//Prln(">>>" + I2S(j) + "==" + path_src + sub_files[j].Name()) //I2S64(m.counter_size.Get()) + ">>>" +
 						FoldersRecursively_Walk(mount_list, sub_files[j], path_src+sub_files[j].Name(), path_dst, method, deep2)
 					}
 				} else {
+					Prln("err: " + err.Error())
 					folder_err = true
 				}
 				method.WithFolderAfter(file_or_dir, is_mount, folder_err, path_src, path_dst)
@@ -86,7 +91,7 @@ func (m *folderWalker_size) WithFile(f os.FileInfo, regular bool, path_src strin
 	}
 }
 
-func (m *folderWalker_size) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string) {
+func (m *folderWalker_size) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
 	if m.counter_folders != nil {
 		m.counter_folders.Add(1)
 	}
@@ -95,7 +100,7 @@ func (m *folderWalker_size) WithFolderBefore(f os.FileInfo, is_mount bool, path_
 			m.counter_mount.Add(1)
 		}
 	}
-	//return !is_mount
+	return path_dst
 }
 
 func (m *folderWalker_size) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
@@ -139,6 +144,7 @@ type folderWalker_delete struct {
 	counter_objects *AInt64
 	current_file    *AString
 	counter_size    *AInt64
+	clear_mode_save string
 }
 
 func (m *folderWalker_delete) WithFile(f os.FileInfo, regular bool, path_src string, path_dst string) {
@@ -154,24 +160,30 @@ func (m *folderWalker_delete) WithFile(f os.FileInfo, regular bool, path_src str
 			if m.counter_size != nil {
 				m.counter_size.Add(f.Size())
 			}
+		} else {
+
 		}
 	} else {
 
 	}
 }
 
-func (m *folderWalker_delete) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string) {
-
+func (m *folderWalker_delete) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
+	return path_dst
 }
 
 func (m *folderWalker_delete) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
-	list, err := Folder_ListFiles(path_src)
-	if err == nil && len(list) == 0 {
-		Prln("deleting folder: " + path_src)
-		ok := FileDelete(path_src)
-		//ok := true
-		if ok && m.counter_objects != nil {
-			m.counter_objects.Add(1)
+	if m.clear_mode_save != FilePathEndSlashRemove(path_src) {
+		list, err := Folder_ListFiles(path_src)
+		if err == nil && len(list) == 0 {
+			Prln("deleting folder: " + path_src)
+			ok := FileDelete(path_src)
+			//ok := true
+			if ok && m.counter_objects != nil {
+				m.counter_objects.Add(1)
+			}
+		} else {
+			//skip
 		}
 	} else {
 		//skip
@@ -182,8 +194,8 @@ func (m *folderWalker_delete) WithLink(f os.FileInfo, is_folder bool, path_src s
 	return false
 }
 
-func FoldersRecursively_Delete(mount_list [][2]string, file_or_dir os.FileInfo, path_real string, counter_size *AInt64, counter_objects *AInt64, current_file *AString) {
-	m := &folderWalker_delete{counter_objects: counter_objects, current_file: current_file, counter_size: counter_size}
+func FoldersRecursively_Delete(mount_list [][2]string, file_or_dir os.FileInfo, path_real string, counter_size *AInt64, counter_objects *AInt64, current_file *AString, clear_mode bool) {
+	m := &folderWalker_delete{counter_objects: counter_objects, current_file: current_file, counter_size: counter_size, clear_mode_save: Select_String(clear_mode, FilePathEndSlashRemove(path_real), "")}
 	FoldersRecursively_Walk(mount_list, file_or_dir, path_real, "", m, 0)
 }
 
@@ -274,8 +286,7 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 				can_do = false
 			}
 			if cmd == FILE_INTERACTIVE_NEWNAME {
-				COPY_LABEL := "copy"
-				path_dst2 = FileNameForCopy(path_dst, COPY_LABEL)
+				path_dst2 = FileNameForCopy(path_dst, COPY_LABEL, false)
 			}
 		}
 		if can_do {
@@ -307,14 +318,15 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 				Prln("renaming file: [" + path_src + " >> " + path_dst2 + "]")
 				path_dst_back := ""
 				if exist && path_dst == path_dst2 {
-					path_dst_back = FileNameForCopy(path_dst, "BACKUP")
+					path_dst_back = FileNameForCopy(path_dst, "BACKUP", false)
 					Prln("renaming copy file before rename: [" + path_dst + " >> " + path_dst_back + "]")
-					if !FileRename(path_dst, path_dst_back) {
+					ok, _ := FileRename(path_dst, path_dst_back)
+					if !ok {
 						ask = true
 						goto ask_label
 					}
 				}
-				ok := FileRename(path_src, path_dst2)
+				ok, _ := FileRename(path_src, path_dst2)
 				if ok {
 					if exist {
 						Prln("delete old file after rename:" + path_dst_back)
@@ -335,7 +347,7 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 					fail_skip := false
 					if exist && path_dst == path_dst2 {
 						Prln("restoring of copy file of rename: [" + path_dst_back + " >> " + path_dst + "]")
-						ok2 := FileRename(path_dst_back, path_dst)
+						ok2, _ := FileRename(path_dst_back, path_dst)
 						if !ok2 {
 							Prln("restoring of copy file of rename PROBLEM: [" + path_dst_back + " >> " + path_dst + "]")
 							fail_skip = true
@@ -355,13 +367,18 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 	}
 }
 
-func (m *folderWalker_copymove) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string) {
-	ok := FolderMake(path_dst)
+func (m *folderWalker_copymove) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
+	dst := path_dst
+	if deep == 0 && !m.move && FolderPathEndSlash(path_src) == FolderPathEndSlash(path_dst) {
+		dst = FolderPathEndSlash(FileNameForCopy(FilePathEndSlashRemove(path_dst), COPY_LABEL, true))
+	}
+	ok := FolderMake(dst)
 	if ok {
 		// if m.counter_objects != nil {
 		// 	m.counter_objects.Add(1)
 		// }
 	}
+	return dst
 }
 
 func (m *folderWalker_copymove) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
@@ -381,6 +398,8 @@ func (m *folderWalker_copymove) WithFolderAfter(f os.FileInfo, is_mount bool, li
 func (m *folderWalker_copymove) WithLink(f os.FileInfo, is_folder bool, path_src string, path_dst string) bool {
 	return false
 }
+
+const COPY_LABEL = "copy"
 
 func FoldersRecursively_Copy(mount_list [][2]string, file_or_dir os.FileInfo, path_src_real string, path_dst_real string, counter_size *AInt64, counter_files_done *AInt64, buffer int, chan_cmd chan FileInteractiveResponse, chan_ask chan FileInteractiveRequest, current_file *AString) {
 	m := &folderWalker_copymove{counter_size: counter_size, counter_files_done: counter_files_done, buffer: buffer, chan_cmd: chan_cmd, chan_ask: chan_ask, current_file: current_file, move: false}

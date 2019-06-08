@@ -177,6 +177,15 @@ func RoundF(a float64) int {
 	return int(a + 0.499999)
 }
 
+func IntInArray(val int, array []int) int {
+	for i := range array {
+		if ok := array[i] == val; ok {
+			return i
+		}
+	}
+	return -1
+}
+
 // =================
 
 func Crypto_MD5(data []byte) string {

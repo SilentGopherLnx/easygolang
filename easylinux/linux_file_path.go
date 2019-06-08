@@ -87,18 +87,7 @@ func (p *LinuxPath) GetParseProblems() bool {
 }
 
 func (p *LinuxPath) GoUp() {
-	tpath := p.path_real
-	mv := 1
-	if StringEnd(tpath, 1) == "/" {
-		mv = 2
-	}
-	s := StringSplit(tpath, "/")
-	s = s[:len(s)-mv]
-	tpath = StringJoin(s, "/")
-	if len(tpath) == 0 {
-		tpath = "/"
-	}
-	p.SetReal(tpath)
+	p.SetReal(LinuxFileGetParent(p.path_real))
 }
 
 func (p *LinuxPath) GoDeep(subfolder string) {
@@ -107,15 +96,7 @@ func (p *LinuxPath) GoDeep(subfolder string) {
 }
 
 func (p *LinuxPath) GetLastNode() string {
-	tpath := p.path_real
-	if StringEnd(tpath, 1) == "/" {
-		tpath = StringPart(tpath, 1, StringLength(tpath)-1)
-	}
-	s := StringSplit(tpath, "/")
-	if len(s) > 0 {
-		return s[len(s)-1]
-	}
-	return ""
+	return LinuxFileNameFromPath(p.path_real)
 }
 
 func removeFileProtocol(path string) string {
