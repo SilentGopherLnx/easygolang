@@ -27,14 +27,18 @@ func GTK_PixBuf_From_Bytes(data *[]byte, ftype string) *gdk.Pixbuf {
 }
 
 func GTK_PixBuf_From_RGBA(img image.Image) *gdk.Pixbuf {
-
+	if InterfaceNil(img) {
+		return nil
+	}
 	data := []byte{}
 	buf := new(bytes.Buffer)
 	err := png.Encode(buf, img)
 	if err == nil {
 		data = buf.Bytes()
+		return GTK_PixBuf_From_Bytes(&data, "png")
+	} else {
+		return nil
 	}
-	return GTK_PixBuf_From_Bytes(&data, "png")
 
 	/*	w := img.Bounds().Max.X
 		h := img.Bounds().Max.Y

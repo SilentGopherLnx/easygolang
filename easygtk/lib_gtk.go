@@ -251,7 +251,7 @@ func GTK_OptionsWidget(optst *OptionsStorage, key string, changed_event func(key
 		minv, maxv, stepv := optst.GetRecordMinMaxStep(key)
 		widget, _ := gtk.SpinButtonNewWithRange(minv, maxv, stepv)
 		widget.SetValue(float64(optst.ValueGetInteger(key)))
-		widget.Connect("changed", func() {
+		widget.Connect("value-changed", func() { //changed
 			Prln("EVENT_FOR_SPINBUTTON: changed")
 			optst.ValueSetInteger(key, RoundF(widget.GetValue()))
 			if changed_event != nil {

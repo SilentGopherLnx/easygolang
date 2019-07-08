@@ -7,6 +7,8 @@ import (
 	"image/color"
 	"image/draw"
 
+	"io"
+
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -15,10 +17,22 @@ import (
 const MAX_A = 65535 / 255 //?
 
 func ImageDecode(data *[]byte) image.Image {
+	return ImageDecodeCustom(data, nil)
+}
+
+//github.com/disintegration/imageorient  -  imageorient.Decode()
+func ImageDecodeCustom(data *[]byte, customdecoder func(io.Reader) (image.Image, string, error)) image.Image {
 	if data == nil || len(*data) == 0 {
 		return nil
 	}
-	img, _, err := image.Decode(bytes.NewReader(*data))
+	reader := bytes.NewReader(*data)
+	var img image.Image
+	var err error
+	if customdecoder != nil {
+		img, _, err = customdecoder(reader)
+	} else {
+		img, _, err = image.Decode(reader)
+	}
 	if err != nil {
 		Prln("image.Decode ERROR")
 		return nil

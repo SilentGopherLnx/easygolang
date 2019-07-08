@@ -22,16 +22,23 @@ func TimeSecondsSub(start Time, finished Time) float64 {
 	return delta.Seconds()
 }
 
-func TimeStr(t Time) string {
+func TimeStr(t Time, seconds bool) string {
 	t2 := time.Time(t)
-	s := fmt.Sprintf("%d.%02d.%02d %02d:%02d",
-		t2.Year(), t2.Month(), t2.Day(),
-		t2.Hour(), t2.Minute()) //, t.Second())
+	s := ""
+	if seconds {
+		s = fmt.Sprintf("%d.%02d.%02d %02d:%02d:%02d",
+			t2.Year(), t2.Month(), t2.Day(),
+			t2.Hour(), t2.Minute(), t2.Second()) //, t.Second())
+	} else {
+		s = fmt.Sprintf("%d.%02d.%02d %02d:%02d",
+			t2.Year(), t2.Month(), t2.Day(),
+			t2.Hour(), t2.Minute()) //, t.Second())
+	}
 	return s
 }
 
 func TimeNowStr() string {
-	return TimeStr(TimeNow())
+	return TimeStr(TimeNow(), true)
 }
 
 func TimeAddMS(t Time, ms int) Time {

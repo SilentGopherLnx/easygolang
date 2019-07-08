@@ -32,7 +32,7 @@ func FoldersRecursively_Walk(mount_list [][2]string, file_or_dir os.FileInfo, pa
 			path_dst = method.WithFolderBefore(file_or_dir, is_mount, path_src, path_dst, deep)
 			if deep == 0 || !is_mount {
 				//Prln(">>1!!" + path_src)
-				sub_files, err := Folder_ListFiles(path_src)
+				sub_files, err := Folder_ListFiles(path_src, false)
 				folder_err := false
 				if err == nil {
 					//Prln(">>2!!" + path_src)
@@ -174,7 +174,7 @@ func (m *folderWalker_delete) WithFolderBefore(f os.FileInfo, is_mount bool, pat
 
 func (m *folderWalker_delete) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
 	if m.clear_mode_save != FilePathEndSlashRemove(path_src) {
-		list, err := Folder_ListFiles(path_src)
+		list, err := Folder_ListFiles(path_src, false)
 		if err == nil && len(list) == 0 {
 			Prln("deleting folder: " + path_src)
 			ok := FileDelete(path_src)
@@ -384,7 +384,7 @@ func (m *folderWalker_copymove) WithFolderBefore(f os.FileInfo, is_mount bool, p
 func (m *folderWalker_copymove) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
 	if m.move {
 		Prln("delete folder after move:" + path_src)
-		list, err := Folder_ListFiles(path_src)
+		list, err := Folder_ListFiles(path_src, false)
 		if err == nil && len(list) == 0 {
 			ok := FileDelete(path_src)
 			if !ok {

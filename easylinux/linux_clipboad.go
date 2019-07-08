@@ -43,3 +43,9 @@ func LinuxClipBoard_PasteFiles() string {
 	res = StringReplace(res, "\000", "")
 	return res
 }
+
+func LinuxClipBoard_Clear() {
+	//xclip -selection clipboard blank
+	//ExecCommand("xclip", "-selection", "clipboard", "blank")
+	ExecCommandBytes([]byte("\000"), 1000, "xclip", "-i", "-selection", "clipboard", "-t", "x-special/gnome-copied-files")
+}

@@ -24,7 +24,7 @@ func LinuxGetMountList() [][2]string {
 
 	uid, _, _ := GetPC_UserUidLoginName()
 	gvfs := "/run/user/" + uid + "/gvfs/"
-	files, err := Folder_ListFiles(gvfs)
+	files, err := Folder_ListFiles(gvfs, false)
 	if err == nil {
 		for _, f := range files[:] {
 			diskname := f.Name()

@@ -36,6 +36,28 @@ func GTK_KeyboardKeyOfEvent(event *gdk.Event) (uint, uint) {
 	return 0, 0
 }
 
+func GTK_TranslateKeyLayoutEnglish(key uint, state uint) (uint, uint) {
+	key2 := key
+	state2 := state
+	if state2 == 8196 { //RUSSIAN Ctrl
+		state2 = 4 //English Ctrl
+	}
+	switch key {
+	case gdk.KEY_Cyrillic_ef: //RUSSIAN 'ф'
+		key2 = gdk.KEY_a
+	case gdk.KEY_Cyrillic_che: //RUSSIAN 'ч'
+		key2 = gdk.KEY_x
+	case gdk.KEY_Cyrillic_es: //RUSSIAN 'с'
+		key2 = gdk.KEY_c
+	case gdk.KEY_Cyrillic_em: //RUSSIAN 'м'
+		key2 = gdk.KEY_v
+		//etc
+	}
+	//Prln("key LOCALE : " + I2S(int(key)) + ", state=" + I2S(int(state)))
+	//Prln("key ENGLISH: " + I2S(int(key2)) + ", state=" + I2S(int(state2)))
+	return key2, state2
+}
+
 func GTK_ScrollGetValues(scroll *gtk.ScrolledWindow) (int, int) {
 	if scroll != nil {
 		dx := int(scroll.GetHAdjustment().GetValue())
