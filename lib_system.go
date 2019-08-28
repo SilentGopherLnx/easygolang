@@ -96,9 +96,10 @@ func SortArray(slice interface{}, less func(i, j int) bool) {
 	sort.SliceStable(slice, less)
 }
 
-func Select_String(condition bool, istrue string, isfalse string) string {
-	return map[bool]string{true: istrue, false: isfalse}[condition]
-}
+//B2S clone
+// func Select_String(condition bool, istrue string, isfalse string) string {
+// 	return map[bool]string{true: istrue, false: isfalse}[condition]
+// }
 
 func Select_Int(condition bool, istrue int, isfalse int) int {
 	return map[bool]int{true: istrue, false: isfalse}[condition]
@@ -116,7 +117,7 @@ func ExecQuote(s string) string {
 	return s
 }
 
-func ExecCommandBytes(input []byte, timeout_ms int, exe_name string, args ...string) ([]byte, []byte, string) {
+func ExecCommandBytes(input []byte, timeout_ms int, forkill chan *exec.Cmd, exe_name string, args ...string) ([]byte, []byte, string) {
 	cmd := exec.Command(exe_name, args...)
 	var buffer_out bytes.Buffer
 	var buffer_err bytes.Buffer
@@ -127,6 +128,11 @@ func ExecCommandBytes(input []byte, timeout_ms int, exe_name string, args ...str
 	if len(input) > 0 {
 		p, in_err := cmd.StdinPipe()
 		err = cmd.Start()
+		go func() {
+			if forkill != nil {
+				forkill <- cmd
+			}
+		}()
 		// go func() {
 		// 	cmd.Process.Kill()
 		// }()
@@ -164,6 +170,6 @@ func ExecCommandBytes(input []byte, timeout_ms int, exe_name string, args ...str
 }
 
 func ExecCommand(exe_name string, args ...string) (string, string, string) {
-	r1, r2, err := ExecCommandBytes([]byte{}, 0, exe_name, args...)
+	r1, r2, err := ExecCommandBytes([]byte{}, 0, nil, exe_name, args...)
 	return string(r1), string(r2), err
 }

@@ -217,7 +217,11 @@ type ABool struct {
 	strs [2]string
 }
 
-func NewAtomicBool(initv bool, truefalse [2]string) *ABool {
+func NewAtomicBool(initv bool) *ABool {
+	return NewAtomicBoolTxt(initv, [2]string{"true", "false"})
+}
+
+func NewAtomicBoolTxt(initv bool, truefalse [2]string) *ABool {
 	if initv {
 		return &ABool{b: 1, strs: truefalse}
 	} else {

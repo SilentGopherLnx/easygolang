@@ -19,24 +19,28 @@ func init() {
 	//Prln("random genetator inited")
 }
 
-func B2S(v bool, style [2]string) string {
+func XOR(X bool, Y bool) bool {
+	return (X || Y) && !(X && Y)
+}
+
+func B2S(v bool, str_true string, str_false string) string {
 	if v {
-		return style[0]
+		return str_true
 	} else {
-		return style[1]
+		return str_false
 	}
 }
 
 func B2S_10(v bool) string {
-	return B2S(v, [2]string{"1", "0"})
+	return B2S(v, "1", "0")
 }
 
 func B2S_TF(v bool) string {
-	return B2S(v, [2]string{"true", "false"})
+	return B2S(v, "true", "false")
 }
 
 func B2S_YN(v bool) string {
-	return B2S(v, [2]string{"yes", "no"})
+	return B2S(v, "yes", "no")
 }
 
 //for sort

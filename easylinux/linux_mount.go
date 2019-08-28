@@ -4,6 +4,7 @@ import (
 	. "github.com/SilentGopherLnx/easygolang"
 )
 
+//name,path
 func LinuxGetMountList() [][2]string {
 	arr := [][2]string{}
 

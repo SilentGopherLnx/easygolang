@@ -15,7 +15,7 @@ type SMB_Name struct {
 // for j := 0; j < len(smbs); j++ {
 // 	Prln("{" + smbs[j].Name + "/" + smbs[j].IPv4 + "/" + smbs[j].IPv6 + "/" + I2S(smbs[j].Port) + "}")
 // }
-func SMB_ScanNetwork() []SMB_Name {
+func SMB_ScanNetwork() ([]SMB_Name, error) {
 	//arp -n - all pc in net
 	//avahi-browse -a
 	//nmblookup -T WORKGROUP
@@ -87,15 +87,15 @@ func SMB_ScanNetwork() []SMB_Name {
 			arr2 = append(arr2, arr[j])
 		}
 	}
-	return arr2
+	return arr2, nil
 }
 
 // arr := SMB_GetPublicFolders("smbnas")
 // for _, a := range arr[:] {
 // 	Prln(a)
 // }
-func SMB_GetPublicFolders(name string) []string {
-	out, _, _ := ExecCommand("smbclient", "-N", "-g", "-L", name)
+func SMB_GetPublicFolders(name_or_ip string) ([]string, error) {
+	out, _, _ := ExecCommand("smbclient", "-N", "-g", "-L", name_or_ip)
 	strs := StringSplitLines(out)
 	arr := []string{}
 	for j := 0; j < len(strs); j++ {
@@ -107,5 +107,5 @@ func SMB_GetPublicFolders(name string) []string {
 			}
 		}
 	}
-	return arr
+	return arr, nil
 }

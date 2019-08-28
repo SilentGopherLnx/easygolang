@@ -7,6 +7,10 @@ import (
 
 type Time time.Time
 
+func TimeZero() Time {
+	return Time(time.Time{})
+}
+
 func TimeNow() Time {
 	return Time(time.Now())
 }
@@ -44,4 +48,13 @@ func TimeNowStr() string {
 func TimeAddMS(t Time, ms int) Time {
 	t2 := time.Time(t)
 	return Time(t2.Add(time.Millisecond * time.Duration(ms)))
+}
+
+func TimeAddDays(t Time, days int) Time {
+	t2 := time.Time(t)
+	return Time(t2.Add(time.Hour * time.Duration(days*24)))
+}
+
+func TimeGolang(t Time) time.Time {
+	return time.Time(t)
 }

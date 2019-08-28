@@ -86,8 +86,10 @@ func FromCP1251(str string) string {
 	//var b strings.Builder
 	for j := 0; j < sz; j++ {
 		char := int(str[j])
-		newstr := TABLE_CP1251[char]
-		if newstr == "" {
+		newstr, ok := TABLE_CP1251[char]
+		if !ok {
+			// newstr := TABLE_CP1251[char]
+			// if newstr == "" {
 			//out += string(runes[j : j+1])
 			//buffer.WriteString(string(runes[j : j+1]))
 			buffer.Write([]byte{str[j]})

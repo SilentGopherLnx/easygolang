@@ -18,18 +18,25 @@ const BytesInMb uint64 = 1024 * 1024
 const DEFAULT_FILE_PERMISSION os.FileMode = 776
 const DEFAULT_FILE_PERMISSION_RUN os.FileMode = 777
 
+var appdir = ""
+
+var END_SLASH = ""
+
+func init() {
+	END_SLASH = string(os.PathSeparator)
+	appdir = folderLocation_App()
+}
+
 func FolderPathEndSlash(path string) string {
-	slash := string(os.PathSeparator)
-	if path != "" && StringEnd(path, 1) != slash {
-		return path + slash
+	if path != "" && StringEnd(path, 1) != END_SLASH {
+		return path + END_SLASH
 	} else {
 		return path
 	}
 }
 
 func FilePathEndSlashRemove(filepath string) string {
-	separator := GetOS_Slash()
-	if StringEnd(filepath, 1) == separator {
+	if StringEnd(filepath, 1) == END_SLASH {
 		return StringPart(filepath, 1, StringLength(filepath)-1)
 	}
 	return filepath
@@ -58,18 +65,17 @@ func FolderLocation_UserHome() string {
 	return FolderPathEndSlash(home)
 }
 
-func FolderLocation_App() string {
-	slash := string(os.PathSeparator)
+func folderLocation_App() string {
 	if len(os.Args) == 0 {
 		return ""
 	}
 	location := os.Args[0]
-	strs := StringSplit(location, slash)
+	strs := StringSplit(location, END_SLASH)
 	if len(strs) == 0 {
 		return ""
 	}
 	strs2 := strs[:len(strs)-1]
-	location = StringJoin(strs2, slash)
+	location = StringJoin(strs2, END_SLASH)
 	location = FolderPathEndSlash(location)
 	//Prln(">" + location + "]")
 	if StringPart(location, 1, 2) != "./" { //home
@@ -78,6 +84,10 @@ func FolderLocation_App() string {
 		location = FolderLocation_WorkDir() + StringPart(location, 3, 0)
 		return FolderPathEndSlash(location)
 	}
+}
+
+func FolderLocation_App() string {
+	return appdir
 }
 
 func Folder_ListFiles(dirname string, fixlinks_isdir bool) ([]FileReport, error) {
@@ -252,7 +262,7 @@ func fileReport(fi os.FileInfo, path string, fixlinks_isdir bool) FileReport {
 	fr := FileReport{}
 	fr.Path = path
 	fr.NameOnly = fi.Name()
-	if fr.NameOnly != string(os.PathSeparator) { // tested Linux only!!
+	if fr.NameOnly != END_SLASH { // tested Linux only!!
 		fr.FullName = path + fr.NameOnly
 	} else {
 		fr.FullName = path

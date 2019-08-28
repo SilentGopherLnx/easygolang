@@ -1,11 +1,22 @@
 package easygtk
 
 import (
-	//. "github.com/SilentGopherLnx/easygolang"
+	. "github.com/SilentGopherLnx/easygolang"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
+
+var table_keys map[uint]uint
+
+func init() {
+	table_keys = make(map[uint]uint)
+	table_keys[gdk.KEY_Cyrillic_ya] = gdk.KEY_z  //RUSSIAN 'я'
+	table_keys[gdk.KEY_Cyrillic_ef] = gdk.KEY_a  //RUSSIAN 'ф'
+	table_keys[gdk.KEY_Cyrillic_che] = gdk.KEY_x //RUSSIAN 'ч'
+	table_keys[gdk.KEY_Cyrillic_es] = gdk.KEY_c  //RUSSIAN 'с'
+	table_keys[gdk.KEY_Cyrillic_em] = gdk.KEY_v  //RUSSIAN 'м'
+}
 
 func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int) {
 	if event != nil {
@@ -36,26 +47,26 @@ func GTK_KeyboardKeyOfEvent(event *gdk.Event) (uint, uint) {
 	return 0, 0
 }
 
-func GTK_TranslateKeyLayoutEnglish(key uint, state uint) (uint, uint) {
+func GTK_KeyboardTranslateLayoutEnglish(key uint, state uint) (uint, uint) {
 	key2 := key
 	state2 := state
-	if state2 == 8196 { //RUSSIAN Ctrl
-		state2 = 4 //English Ctrl
+	if state2 > 8192 { //RUSSIAN Ctrl 8196 == English Ctrl 4
+		state2 -= 8192
 	}
-	switch key {
-	case gdk.KEY_Cyrillic_ef: //RUSSIAN 'ф'
-		key2 = gdk.KEY_a
-	case gdk.KEY_Cyrillic_che: //RUSSIAN 'ч'
-		key2 = gdk.KEY_x
-	case gdk.KEY_Cyrillic_es: //RUSSIAN 'с'
-		key2 = gdk.KEY_c
-	case gdk.KEY_Cyrillic_em: //RUSSIAN 'м'
-		key2 = gdk.KEY_v
-		//etc
+	key3, ok := table_keys[key]
+	if ok {
+		key2 = key3
 	}
-	//Prln("key LOCALE : " + I2S(int(key)) + ", state=" + I2S(int(state)))
-	//Prln("key ENGLISH: " + I2S(int(key2)) + ", state=" + I2S(int(state2)))
+	// Prln(">" + I2S(int(state&gdk.GDK_CONTROL_MASK)))
+	// Prln(">" + I2S(int(gdk.GDK_CONTROL_MASK)))
+	Prln("pressed: [" + string(gdk.KeyvalToUnicode(key)) + "]")
+	Prln("key LOCALE : " + I2S(int(key)) + ", state=" + I2S(int(state)))
+	Prln("key ENGLISH: " + I2S(int(key2)) + ", state=" + I2S(int(state2)))
 	return key2, state2
+}
+
+func GTK_KeyboardCtrl(state uint) bool {
+	return state&gdk.GDK_CONTROL_MASK == gdk.GDK_CONTROL_MASK
 }
 
 func GTK_ScrollGetValues(scroll *gtk.ScrolledWindow) (int, int) {
