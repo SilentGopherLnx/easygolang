@@ -4,6 +4,8 @@ import (
 	. "github.com/SilentGopherLnx/easygolang"
 )
 
+const SMB_SLASH2 = "smb://"
+
 type SMB_Name struct {
 	Name string
 	IPv4 string
@@ -107,5 +109,14 @@ func SMB_GetPublicFolders(name_or_ip string) ([]string, error) {
 			}
 		}
 	}
+	if len(arr) == 0 {
+		return arr, ErrorWithText("No Public Folders For This PC")
+	}
 	return arr, nil
+}
+
+func SMB_IsMount(p *LinuxPath, folder string, mountlist [][2]string) bool {
+	p2 := NewLinuxPath(true)
+	p2.SetVisual(p.GetVisual() + folder + "/")
+	return LinuxFolderIsMountPoint(mountlist, p2.GetReal())
 }

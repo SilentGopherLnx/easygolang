@@ -1,12 +1,13 @@
 package easygolang
 
 import (
-	"bytes"
+	//	"math"
 
 	"image"
 	"image/color"
 	"image/draw"
 
+	"bytes"
 	"io"
 
 	_ "image/gif"
@@ -79,6 +80,29 @@ func ImageClone(img image.Image) *image.RGBA {
 		}
 	}
 	return img2
+}
+
+func ImageGrayScale(img image.Image) *image.Gray {
+	bounds := img.Bounds()
+	w, h := bounds.Max.X, bounds.Max.Y
+	grayScale := image.NewGray(image.Rectangle{image.Point{0, 0}, image.Point{w, h}})
+	for x := 0; x < w; x++ {
+		for y := 0; y < h; y++ {
+			// imageColor := img.At(x, y)
+			// rr, gg, bb, _ := imageColor.RGBA()
+			// r := math.Pow(float64(rr), 2.2)
+			// g := math.Pow(float64(gg), 2.2)
+			// b := math.Pow(float64(bb), 2.2)
+			// m := math.Pow(0.2125*r+0.7154*g+0.0721*b, 1/2.2)
+			// Y := uint16(m + 0.5)
+			// grayColor := color.Gray{uint8(Y >> 8)}
+			// grayScale.Set(x, y, grayColor)
+			oldPixel := img.At(x, y)
+			pixel := color.GrayModel.Convert(oldPixel)
+			grayScale.Set(x, y, pixel)
+		}
+	}
+	return grayScale
 }
 
 func ImageResizeNearest(img image.Image, w int, h int) *image.RGBA {
@@ -171,6 +195,15 @@ func BlendColors(argb_back [4]float64, argb_over [4]float64, maxv float64) [4]in
 	r[2] = MAXI(0, MINI(maxv_int, r[2]))
 	r[3] = MAXI(0, MINI(maxv_int, r[3]))
 	return r
+}
+
+func ImageSubImage(big image.Image, x0, y0, x1, y1 int) *image.RGBA {
+
+	w := MAXI(1, x1-x0)
+	h := MAXI(1, y1-y0)
+	img2 := image.NewRGBA(image.Rect(0, 0, w, h))
+	ImageAddOver(img2, big, -x0, -y0)
+	return img2
 }
 
 func ImageAddOver(img1 *image.RGBA, img2 image.Image, x int, y int) {

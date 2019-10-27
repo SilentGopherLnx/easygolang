@@ -38,6 +38,9 @@ func (p *LinuxPath) SetUrl(path_url string) {
 	p.path_visual = linuxFilePath_Unescape(p.path_url)
 	p.path_real, p.parse_error = linuxFilePathProtocol_VisualToReal(p.path_visual)
 	p.parse_error = !p.parse_error
+	if p.parse_error {
+		p.path_real = linux_mount_gvfs
+	}
 }
 
 func (p *LinuxPath) SetReal(path_real string) {
@@ -65,6 +68,9 @@ func (p *LinuxPath) SetVisual(path_visual string) {
 	p.path_url = linuxFilePath_Escape(p.path_visual)
 	p.path_real, p.parse_error = linuxFilePathProtocol_VisualToReal(p.path_visual)
 	p.parse_error = !p.parse_error
+	if p.parse_error {
+		p.path_real = linux_mount_gvfs
+	}
 }
 
 func (p *LinuxPath) GetUrl() string {
@@ -87,12 +93,33 @@ func (p *LinuxPath) GetParseProblems() bool {
 }
 
 func (p *LinuxPath) GoUp() {
+	v := FolderPathEndSlash(p.path_visual)
+	if StringFind(v, SMB_SLASH2) == 1 {
+		if StringLength(v) > StringLength(SMB_SLASH2) {
+			strs := StringSplit(v, "/")
+			n := len(strs)
+			if n == 4 {
+				p.SetVisual(SMB_SLASH2)
+				return
+			}
+			if n == 5 {
+				p.SetVisual(SMB_SLASH2 + strs[2] + "/")
+				return
+			}
+		} else {
+			p.SetReal(linux_mount_gvfs)
+			return
+		}
+	}
 	p.SetReal(LinuxFileGetParent(p.path_real))
 }
 
-func (p *LinuxPath) GoDeep(subfolder string) {
-	r := FolderPathEndSlash(p.path_real)
-	p.SetReal(r + subfolder)
+func (p *LinuxPath) GoDeeper(subfolder string) {
+	p.parse_error = false
+	v := FolderPathEndSlash(p.path_visual)
+	//Prln(v + "||" + subfolder)
+	v = FolderPathEndSlash(v + subfolder)
+	p.SetVisual(v)
 }
 
 func (p *LinuxPath) GetLastNode() string {
@@ -151,7 +178,7 @@ func linuxFilePathProtocol_VisualToReal(path_visual string) (string, bool) {
 		return path2, true
 	case "smb":
 		if len(path_arr) > 2 {
-			return linux_mount_gvfs + "smb-share:server=" + UrlQueryEscape(path_arr[0]) + ",share=" + UrlQueryEscape(path_arr[1]) + "/" + StringJoin(path_arr[2:], "/"), true
+			return linux_mount_gvfs + "smb-share:server=" + UrlQueryEscape(path_arr[0]) + ",share=" + UrlQueryEscape(StringDown(path_arr[1])) + "/" + StringJoin(path_arr[2:], "/"), true
 		}
 	case "mtp", "gphoto2":
 		if len(path_arr) > 1 {
@@ -225,7 +252,7 @@ func linuxFilePathProtocol_RealToVisual(path_real string) string {
 			case "smb-share":
 				servername := StringTrim(q.Get("server"))
 				foldershare := StringTrim(q.Get("share"))
-				return "smb://" + servername + "/" + foldershare + "/" + path2
+				return SMB_SLASH2 + servername + "/" + foldershare + "/" + path2
 			case "mtp", "gphoto2":
 				hostname := StringTrim(q.Get("host"))
 				return protocol + "://" + linuxFilePath_EscapeArgs(hostname) + "/" + path2

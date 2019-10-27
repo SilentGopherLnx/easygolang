@@ -3,6 +3,7 @@ package easygolang
 import (
 	"crypto/md5"
 	"crypto/sha1"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -181,6 +182,10 @@ func RoundF(a float64) int {
 	return int(a + 0.499999)
 }
 
+func Sqrt(x float64) float64 {
+	return math.Sqrt(x)
+}
+
 func IntInArray(val int, array []int) int {
 	for i := range array {
 		if ok := array[i] == val; ok {
@@ -188,6 +193,15 @@ func IntInArray(val int, array []int) int {
 		}
 	}
 	return -1
+}
+
+func Int32Bytes(v int32) [4]byte {
+	b := [4]byte{
+		byte(0xff & v),
+		byte(0xff & (v >> 8)),
+		byte(0xff & (v >> 16)),
+		byte(0xff & (v >> 24))}
+	return b
 }
 
 // =================

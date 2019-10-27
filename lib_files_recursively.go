@@ -435,7 +435,7 @@ func (m *folderWalker_searcher) WithFile(f os.FileInfo, regular bool, path_src s
 	if regular {
 		if StringFind(StringDown(f.Name()), m.search) > 0 {
 			path, _ := FileSplitPathAndName(path_src)
-			f2 := fileReport(f, path, true)
+			f2 := NewFileReport(f, path, true)
 			m.chan_found <- &f2 //FilePathEndSlashRemove(path_src)
 		}
 	} else {
@@ -446,7 +446,7 @@ func (m *folderWalker_searcher) WithFile(f os.FileInfo, regular bool, path_src s
 func (m *folderWalker_searcher) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
 	if StringFind(StringDown(f.Name()), m.search) > 0 {
 		path, _ := FileSplitPathAndName(path_src)
-		f2 := fileReport(f, path, true)
+		f2 := NewFileReport(f, path, true)
 		m.chan_found <- &f2 //FolderPathEndSlash(path_src)
 	}
 	return path_dst

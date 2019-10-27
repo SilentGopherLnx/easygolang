@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 	//"strings"
+	//"bufio"
 )
 
 const BytesInMb uint64 = 1024 * 1024
@@ -98,7 +99,7 @@ func Folder_ListFiles(dirname string, fixlinks_isdir bool) ([]FileReport, error)
 	arr2 := make([]FileReport, len(arr1))
 	path := FolderPathEndSlash(dirname)
 	for j := 0; j < len(arr1); j++ {
-		arr2[j] = fileReport(arr1[j], path, fixlinks_isdir)
+		arr2[j] = NewFileReport(arr1[j], path, fixlinks_isdir)
 	}
 	return arr2, nil
 }
@@ -138,7 +139,7 @@ func FileRename(path_src string, path_dst string) (bool, string) {
 }
 
 //https://stackoverflow.com/questions/1821811/how-to-read-write-from-to-file-using-go
-func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error { //, dest_reopen bool
+/*func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error { //, dest_reopen bool
 	source, err1 := os.Open(src)
 	if err1 != nil {
 		return ErrorWithText("[src]" + err1.Error()) // err1
@@ -175,6 +176,9 @@ func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error
 		// 	}
 		// }
 
+		if err0 := dest.Sync(); err0 != nil {
+			return ErrorWithText("[dst_write]" + err0.Error()) //err
+		}
 		if _, err := dest.WriteAt(buf[:n], off); err != nil {
 			return ErrorWithText("[dst_write]" + err.Error()) //err
 		}
@@ -192,6 +196,69 @@ func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error
 	//if !dest_reopen {
 	dest.Close()
 	//}
+	return nil
+}*/
+
+func FileCopyAtom(src string, dst string, copied *AInt64, buffer_size int) error {
+	source, err1 := os.Open(src)
+	if err1 != nil {
+		return ErrorWithText("[src_init]" + err1.Error()) // err1
+	}
+	defer source.Close()
+
+	source_size := int64(1024)
+	st, err3 := source.Stat()
+	if err3 != nil {
+		return ErrorWithText("[src_size]" + err3.Error())
+	} else {
+		if !st.Mode().IsRegular() {
+			return ErrorWithText("[src_not_regulat_file]")
+		} else {
+			source_size = st.Size()
+		}
+	}
+
+	safe_buffer := MAXI64(0, MINI64(int64(buffer_size), source_size))
+	buf := make([]byte, safe_buffer)
+	off := int64(0)
+
+	dest, err2 := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC|os.O_APPEND, 0777) //os.O_APPEND|os.O_TRUNC|os.O_SYNC
+	//dest, err2 := os.Create(dst)
+	if err2 != nil {
+		return ErrorWithText("[dst_init]" + err2.Error()) //err2
+	}
+	defer dest.Close()
+	dest.Sync()
+	//w := bufio.NewWriter(dest)
+
+	for {
+		n, err := source.Read(buf)
+		if err != nil && err != io.EOF {
+			return ErrorWithText("[src_read]" + err.Error()) //err
+		}
+		if n == 0 {
+			break
+		}
+
+		buf2 := buf[:n]
+		n2, err0 := dest.Write(buf2)
+		//dest.Sync()
+		//n2, err0 := w.Write(buf2)
+		if err0 != nil {
+			msg := "[dst_write] " + I2S(n2) + "/" + I2S(n) + " - " + err0.Error()
+			//Prln(msg)
+			return ErrorWithText(msg)
+		}
+		//w.Flush()
+
+		n64 := int64(n)
+		off += n64
+
+		if copied != nil {
+			copied.Add(n64)
+		}
+	}
+	dest.Sync()
 	return nil
 }
 
@@ -258,7 +325,11 @@ func (fr FileReport) Sys() interface{} {
 	return fr.sys
 }
 
-func fileReport(fi os.FileInfo, path string, fixlinks_isdir bool) FileReport {
+func (fr *FileReport) SetModeTime(mode string, modTime Time) {
+	fr.modTime = time.Time(modTime)
+}
+
+func NewFileReport(fi os.FileInfo, path string, fixlinks_isdir bool) FileReport {
 	fr := FileReport{}
 	fr.Path = path
 	fr.NameOnly = fi.Name()
@@ -291,7 +362,7 @@ func FileInfo(fullname string, fixlinks_isdir bool) (FileReport, error) {
 	}
 	name := f.Name()
 	parent := StringPart(fullname, 1, StringLength(fullname)-StringLength(name))
-	return fileReport(f, FolderPathEndSlash(parent), fixlinks_isdir), nil
+	return NewFileReport(f, FolderPathEndSlash(parent), fixlinks_isdir), nil
 }
 
 func FilePermissionsString(name string) string {
@@ -434,7 +505,10 @@ func FileSeparateNumberedName(filename string, copylabel string, isdir bool) (st
 }
 
 func FileSplitPathAndName(filename string) (string, string) {
-	return filepath.Split(filename)
+	fname := FilePathEndSlashRemove(filename)
+	r1, r2 := filepath.Split(fname)
+	//Prln(fname + ">>" + r1 + ">" + r2)
+	return r1, r2
 	//path, name :=
 	//Prln(path)
 	//return path, name
