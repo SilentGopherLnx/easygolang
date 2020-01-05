@@ -71,6 +71,9 @@ func SMB_ScanNetwork() ([]SMB_Name, error) {
 			}
 		}
 	}
+	if smb != nil && smb.Name != "" {
+		arr = append(arr, *smb)
+	}
 	arr2 := []SMB_Name{}
 	for j := 0; j < len(arr); j++ {
 		exist := false
@@ -119,4 +122,58 @@ func SMB_IsMount(p *LinuxPath, folder string, mountlist [][2]string) bool {
 	p2 := NewLinuxPath(true)
 	p2.SetVisual(p.GetVisual() + folder + "/")
 	return LinuxFolderIsMountPoint(mountlist, p2.GetReal())
+}
+
+func SMB_CheckVirtualPath(url string) (bool, string, string) {
+	len_smb := StringLength(SMB_SLASH2)
+	if url == SMB_SLASH2 {
+		return true, "", ""
+	}
+	if StringPart(url, 1, len_smb) == SMB_SLASH2 {
+		pc_name := StringPart(url, len_smb+1, 0)
+		pc_name = FilePathEndSlashRemove(pc_name)
+		if StringFind(pc_name, GetOS_Slash()) == 0 {
+			return false, pc_name, ""
+		}
+		arr := StringSplit(pc_name, "/")
+		if len(arr) == 2 {
+			return false, arr[0], arr[1]
+		}
+	}
+	return false, "", ""
+}
+
+func SMB_UnMount(pc_name string, folder_name string) error {
+	//cmd:="gio mount -u smb://"+server+"/"+StringDown(folder_name )+"/"
+	//ExecCommand(cmd)
+	Prln("UNmounting smb [" + pc_name + "][" + folder_name + "]")
+	c1, c2, c3 := ExecCommand("gio", "mount", "-u", "smb://"+pc_name+"/"+StringDown(folder_name)+"/")
+	res := c1 + "/" + c2 + "/" + c3
+	if len(res) > 2 {
+		return ErrorWithText(res)
+	}
+	return nil
+}
+
+func SMB_MountLoginAsk(pc_name string, folder_name string) (bool, error) {
+	return sMB_MountLoginUse(pc_name, folder_name, "", "")
+}
+
+func SMB_MountLoginUse(pc_name string, folder_name string, login string, password string) error {
+	_, err := sMB_MountLoginUse(pc_name, folder_name, login, password)
+	return err
+}
+
+func sMB_MountLoginUse(pc_name string, folder_name string, login string, password string) (bool, error) {
+	Prln("mounting smb [" + pc_name + "][" + folder_name + "] start")
+	c1, c2, c3 := ExecCommandBytes([]byte{}, 2000, nil, "gio", "mount", "smb://"+pc_name+"/"+StringDown(folder_name)+"/")
+	res := string(c1) + "/" + string(c2) + "/" + c3
+	Prln("mounting smb [" + pc_name + "][" + folder_name + "] finish: " + res)
+	if false {
+		return true, nil
+	}
+	if len(res) > 2 {
+		return false, ErrorWithText(res)
+	}
+	return false, nil
 }

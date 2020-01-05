@@ -398,7 +398,11 @@ func (m *folderWalker_copymove) WithFolderAfter(f os.FileInfo, is_mount bool, li
 		list, err := Folder_ListFiles(path_src, false)
 		if err == nil && len(list) == 0 {
 			ok := FileDelete(path_src)
-			if !ok {
+			if ok {
+				if m.counter_files_done != nil {
+					m.counter_files_done.Add(1)
+				}
+			} else {
 				m.chan_ask <- FileInteractiveRequest{Attempt: 0, FileName: path_src, AskType: FILE_INTERACTIVE_ASK_PANIC}
 				<-m.chan_cmd
 			}

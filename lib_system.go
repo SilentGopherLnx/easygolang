@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 var pattern *regexp.Regexp
@@ -70,6 +71,17 @@ func InterfaceNil(a interface{}) bool {
 
 func RuntimeSetFinalizer(obj interface{}, finalFunc interface{}) {
 	runtime.SetFinalizer(obj, finalFunc)
+}
+
+// funcAddr returns function value fn executable code address.
+func funcAddr(fn interface{}) uintptr {
+	// emptyInterface is the header for an interface{} value.
+	type emptyInterface struct {
+		typ   uintptr
+		value *uintptr
+	}
+	e := (*emptyInterface)(unsafe.Pointer(&fn))
+	return *e.value
 }
 
 // if a, b, c = func() and you need only "b" or only "c"

@@ -21,6 +21,7 @@ func init() {
 func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int) {
 	if event != nil {
 		eventObject := &gdk.EventButton{event}
+		//eventmotion:=gdk.EventMotionNewFromEvent(event)
 		key := 0
 		btn := eventObject.ButtonVal()
 		// switch btn {

@@ -50,6 +50,68 @@ func (s *SyncMutex) Unlock() {
 	s.m.Unlock()
 }
 
+type SyncMutexRW struct {
+	m *sync.RWMutex
+}
+
+func NewSyncMutexRW() *SyncMutexRW {
+	return &SyncMutexRW{m: new(sync.RWMutex)}
+}
+
+func (s *SyncMutexRW) W_Lock() {
+	s.m.Lock()
+}
+
+func (s *SyncMutexRW) W_Unlock() {
+	//defer recover()
+	s.m.Unlock()
+}
+
+func (s *SyncMutexRW) R_Lock() {
+	s.m.RLock()
+}
+
+func (s *SyncMutexRW) R_Unlock() {
+	s.m.RUnlock()
+}
+
+type SyncMutexRW_OneWriterProtected struct {
+	m *sync.RWMutex
+	a *AInt
+}
+
+func NewSyncMutexRW_OneWriterProtected() *SyncMutexRW_OneWriterProtected {
+	return &SyncMutexRW_OneWriterProtected{m: new(sync.RWMutex), a: NewAtomicInt(0)}
+}
+
+func (s *SyncMutexRW_OneWriterProtected) W_Lock() {
+	newv := s.a.Add(1)
+	if newv == 1 {
+		s.m.Lock()
+	} else {
+		s.a.Add(-1)
+		Prln("MUTEX LOCK TWICE!")
+	}
+}
+
+func (s *SyncMutexRW_OneWriterProtected) W_Unlock() {
+	newv := s.a.Add(-1)
+	if newv == 0 {
+		s.m.Unlock()
+	} else {
+		s.a.Add(1)
+		Prln("MUTEX UNLOCK TWICE!")
+	}
+}
+
+func (s *SyncMutexRW_OneWriterProtected) R_Lock() {
+	s.m.RLock()
+}
+
+func (s *SyncMutexRW_OneWriterProtected) R_Unlock() {
+	s.m.RUnlock()
+}
+
 // ===
 
 //https://github.com/sheerun/queue/blob/master/queue.go
