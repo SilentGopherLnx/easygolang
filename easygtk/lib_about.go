@@ -13,7 +13,7 @@ import (
 	//"github.com/gotk3/gotk3/pango"
 )
 
-func Dialog_About(w *gtk.Window, version, author, mail, repository string, flag *gdk.Pixbuf) {
+func Dialog_About(w *gtk.Window, version, author, mail, repository, more string, flag *gdk.Pixbuf) {
 	dial, box := GTK_Dialog(w, "About")
 
 	lbl_version, _ := gtk.LabelNew("version: " + version)
@@ -30,6 +30,11 @@ func Dialog_About(w *gtk.Window, version, author, mail, repository string, flag 
 	box.Add(lbl_author)
 	box.Add(lbl_email)
 	box.Add(lbl_github)
+
+	if StringLength(more) > 0 {
+		lbl_more, _ := gtk.LabelNew("\n" + more)
+		box.Add(lbl_more)
+	}
 
 	dial.SetResizable(false)
 	dial.ShowAll()

@@ -423,6 +423,9 @@ func FoldersRecursively_Copy(mount_list [][2]string, file_or_dir os.FileInfo, pa
 }
 
 func FoldersRecursively_Move(mount_list [][2]string, file_or_dir os.FileInfo, path_src_real string, path_dst_real string, counter_size *AInt64, counter_files_done *AInt64, buffer int, chan_cmd chan FileInteractiveResponse, chan_ask chan FileInteractiveRequest, current_file *AString, cmd_saved string, disk_equal bool) string {
+	// if(disk_equal && file_or_dir.IsDir()){
+	// 	FileRename(path_src_real,path_dst_real)
+	// }
 	m := &folderWalker_copymove{counter_size: counter_size, counter_files_done: counter_files_done, buffer: buffer, chan_cmd: chan_cmd, chan_ask: chan_ask, current_file: current_file, move: true, disk_equal: disk_equal, cmd_saved: cmd_saved}
 	FoldersRecursively_Walk(mount_list, file_or_dir, path_src_real, FolderPathEndSlash(path_dst_real), m, 0, nil)
 	return m.cmd_saved

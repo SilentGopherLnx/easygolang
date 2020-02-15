@@ -18,12 +18,13 @@ func init() {
 	table_keys[gdk.KEY_Cyrillic_em] = gdk.KEY_v  //RUSSIAN 'м'
 }
 
-func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int) {
+func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int, uint) {
 	if event != nil {
 		eventObject := &gdk.EventButton{event}
 		//eventmotion:=gdk.EventMotionNewFromEvent(event)
 		key := 0
 		btn := eventObject.ButtonVal()
+		state := eventObject.State()
 		// switch btn {
 		// case gdk.KEY_leftpointer:
 		// 	key = 1
@@ -32,9 +33,9 @@ func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int) {
 		// default:
 		key = int(btn)
 		//}
-		return key, int(eventObject.X()), int(eventObject.Y())
+		return key, int(eventObject.X()), int(eventObject.Y()), state
 	}
-	return 0, 0, 0
+	return 0, 0, 0, 0
 }
 
 func GTK_KeyboardKeyOfEvent(event *gdk.Event) (uint, uint) {
@@ -66,9 +67,14 @@ func GTK_KeyboardTranslateLayoutEnglish(key uint, state uint) (uint, uint) {
 	return key2, state2
 }
 
-func GTK_KeyboardCtrl(state uint) bool {
+func GTK_KeyboardCtrlState(state uint) bool {
 	return state&gdk.GDK_CONTROL_MASK == gdk.GDK_CONTROL_MASK
 }
+
+// func GTK_KeyboardCtrl(event *gdk.Event) bool {
+// 	//_, state := GTK_KeyboardKeyOfEvent(event)//replace to mouse!
+// 	return GTK_KeyboardCtrlState(state)
+// }
 
 func GTK_ScrollGetValues(scroll *gtk.ScrolledWindow) (int, int) {
 	if scroll != nil {
