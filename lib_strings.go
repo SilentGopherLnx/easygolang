@@ -182,6 +182,12 @@ func StringInArray(val string, array []string) int {
 	return -1
 }
 
+var utf8_bom = string([]byte{239, 187, 191}) // UTF-8 specific
+
+func StringFixUTF8(line string) string {
+	return strings.TrimPrefix(line, utf8_bom)
+}
+
 // ======
 
 type RegExp struct {

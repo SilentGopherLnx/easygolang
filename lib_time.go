@@ -55,6 +55,29 @@ func TimeAddDays(t Time, days int) Time {
 	return Time(t2.Add(time.Hour * time.Duration(days*24)))
 }
 
+func TimeWeekday(t Time) int {
+	t2 := time.Time(t)
+	day := t2.Weekday()
+	switch day {
+	case time.Monday:
+		return 1
+	case time.Tuesday:
+		return 2
+	case time.Wednesday:
+		return 3
+	case time.Thursday:
+		return 4
+	case time.Friday:
+		return 5
+	case time.Saturday:
+		return 6
+	case time.Sunday:
+		return 7
+	default:
+		return 0
+	}
+}
+
 func TimeGolang(t Time) time.Time {
 	return time.Time(t)
 }
