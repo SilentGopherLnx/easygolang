@@ -7,7 +7,7 @@ import (
 
 type IFolderWalker interface {
 	WithFile(f os.FileInfo, regular bool, path_src string, path_dst string)
-	WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string
+	WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) (string, bool)
 	WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string)
 	WithLink(f os.FileInfo, is_folder bool, path_src string, path_dst string) bool
 }
@@ -29,8 +29,9 @@ func FoldersRecursively_Walk(mount_list [][2]string, file_or_dir os.FileInfo, pa
 			if is_mount {
 				deep2 += 1
 			}
-			path_dst = method.WithFolderBefore(file_or_dir, is_mount, path_src, path_dst, deep)
-			if deep == 0 || !is_mount {
+			skip := false
+			path_dst, skip = method.WithFolderBefore(file_or_dir, is_mount, path_src, path_dst, deep)
+			if !skip && (deep == 0 || !is_mount) {
 				//Prln(">>1!!" + path_src)
 				sub_files, err := Folder_ListFiles(path_src, false)
 				folder_err := false
@@ -93,7 +94,7 @@ func (m *folderWalker_size) WithFile(f os.FileInfo, regular bool, path_src strin
 	}
 }
 
-func (m *folderWalker_size) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
+func (m *folderWalker_size) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) (string, bool) {
 	if m.counter_folders != nil {
 		m.counter_folders.Add(1)
 	}
@@ -102,7 +103,7 @@ func (m *folderWalker_size) WithFolderBefore(f os.FileInfo, is_mount bool, path_
 			m.counter_mount.Add(1)
 		}
 	}
-	return path_dst
+	return path_dst, false
 }
 
 func (m *folderWalker_size) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
@@ -171,8 +172,8 @@ func (m *folderWalker_delete) WithFile(f os.FileInfo, regular bool, path_src str
 	}
 }
 
-func (m *folderWalker_delete) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
-	return path_dst
+func (m *folderWalker_delete) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) (string, bool) {
+	return path_dst, false
 }
 
 func (m *folderWalker_delete) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
@@ -378,8 +379,29 @@ func (m *folderWalker_copymove) WithFile(f os.FileInfo, regular bool, path_src s
 	}
 }
 
-func (m *folderWalker_copymove) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
+func (m *folderWalker_copymove) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) (string, bool) {
 	dst := path_dst
+	skip := false
+	/*if m.move && m.disk_equal && FolderPathEndSlash(path_src) != FolderPathEndSlash(path_dst) {
+		simple, err := FileRename(path_src, path_dst)
+		if simple {
+			skip = true
+			Prln("just renamed: " + path_src + " >> " + path_dst)
+			f_n:=0
+			f_s:=0
+			if m.counter_files_done != nil || m.counter_size != nil {
+				//FoldersRecursively_Size(mount_list, f, path_src, src_size, src_files, src_folders, nil, nil, nil, nil, nil)
+			}
+			if m.counter_files_done != nil {
+				m.counter_files_done.Add(f_n)
+			}
+			if m.counter_size != nil {
+				m.counter_size.Add(f_s)
+			}
+		} else {
+			Prln("tryed, but not renamed: " + path_src + " >> " + path_dst + " ||| " + err)
+		}
+	}*/
 	if deep == 0 && !m.move && FolderPathEndSlash(path_src) == FolderPathEndSlash(path_dst) {
 		dst = FolderPathEndSlash(FileNameForCopy(FilePathEndSlashRemove(path_dst), COPY_LABEL, true))
 	}
@@ -389,7 +411,7 @@ func (m *folderWalker_copymove) WithFolderBefore(f os.FileInfo, is_mount bool, p
 		// 	m.counter_objects.Add(1)
 		// }
 	}
-	return dst
+	return dst, skip
 }
 
 func (m *folderWalker_copymove) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {
@@ -422,13 +444,31 @@ func FoldersRecursively_Copy(mount_list [][2]string, file_or_dir os.FileInfo, pa
 	return m.cmd_saved
 }
 
-func FoldersRecursively_Move(mount_list [][2]string, file_or_dir os.FileInfo, path_src_real string, path_dst_real string, counter_size *AInt64, counter_files_done *AInt64, buffer int, chan_cmd chan FileInteractiveResponse, chan_ask chan FileInteractiveRequest, current_file *AString, cmd_saved string, disk_equal bool) string {
-	// if(disk_equal && file_or_dir.IsDir()){
-	// 	FileRename(path_src_real,path_dst_real)
-	// }
+func FoldersRecursively_Move(mount_list [][2]string, file_or_dir os.FileInfo, path_src_real string, path_dst_real string, counter_size *AInt64, counter_files_done *AInt64, buffer int, chan_cmd chan FileInteractiveResponse, chan_ask chan FileInteractiveRequest, current_file *AString, cmd_saved string, disk_equal bool) (string, bool) {
+	simple := false
+	if disk_equal && file_or_dir.IsDir() && FolderPathEndSlash(path_src_real) != FolderPathEndSlash(path_dst_real) {
+		ok, err := FileRename(path_src_real, path_dst_real)
+		if ok {
+			simple = true
+			Prln("just renamed: " + path_src_real + " >> " + path_dst_real)
+			if counter_files_done != nil || counter_size != nil {
+				var src_files, src_folders *AInt64
+				if counter_files_done != nil {
+					src_files = NewAtomicInt64(0)
+					src_folders = NewAtomicInt64(0)
+				}
+				FoldersRecursively_Size(mount_list, file_or_dir, path_dst_real, counter_size, src_files, src_folders, nil, nil, nil, nil, nil)
+				if counter_files_done != nil {
+					counter_files_done.Add(src_files.Get() + src_folders.Get())
+				}
+			}
+		} else {
+			Prln("tryed, but not renamed: " + path_src_real + " >> " + path_dst_real + " ||| " + err)
+		}
+	}
 	m := &folderWalker_copymove{counter_size: counter_size, counter_files_done: counter_files_done, buffer: buffer, chan_cmd: chan_cmd, chan_ask: chan_ask, current_file: current_file, move: true, disk_equal: disk_equal, cmd_saved: cmd_saved}
 	FoldersRecursively_Walk(mount_list, file_or_dir, path_src_real, FolderPathEndSlash(path_dst_real), m, 0, nil)
-	return m.cmd_saved
+	return m.cmd_saved, simple
 }
 
 // ================
@@ -450,13 +490,13 @@ func (m *folderWalker_searcher) WithFile(f os.FileInfo, regular bool, path_src s
 	}
 }
 
-func (m *folderWalker_searcher) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) string {
+func (m *folderWalker_searcher) WithFolderBefore(f os.FileInfo, is_mount bool, path_src string, path_dst string, deep int) (string, bool) {
 	if StringFind(StringDown(f.Name()), m.search) > 0 {
 		path, _ := FileSplitPathAndName(path_src)
 		f2 := NewFileReport(f, path, true)
 		m.chan_found <- &f2 //FolderPathEndSlash(path_src)
 	}
-	return path_dst
+	return path_dst, false
 }
 
 func (m *folderWalker_searcher) WithFolderAfter(f os.FileInfo, is_mount bool, list_err bool, path_src string, path_dst string) {

@@ -10,6 +10,7 @@ Code is under development ...
 - lib_files_recursively.go - my code for file size, copy, move, delete operations with atomic counters
 - lib_files.go - read, write, create, list files in folders, get file's information
 - lib_image.go - functions for default image package
+- lib_lang.go - multi-language support
 - lib_log.go - my small log tool
 - lib_math.go - conversion between numbers and strings, random, checksums
 - lib_network.go - network tools, escape and unescape html and url args

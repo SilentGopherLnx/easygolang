@@ -72,14 +72,14 @@ func GTK_Childs(w GTK_RemoveDestroyAble, remove_all bool, destroy_all bool) []gt
 
 func GTK_WidgetExist(w interface {
 	IsVisible() bool
-	GetParent() (*gtk.Widget, error)
+	//GetParent() (*gtk.Widget, error)
 }) bool {
 	if w != nil {
 		if w.IsVisible() {
-			par, err := w.GetParent()
-			if err == nil && par != nil {
-				return true
-			}
+			// par, err := w.GetParent()
+			// if err == nil && par != nil {
+			return true
+			//}
 		}
 	}
 	return false

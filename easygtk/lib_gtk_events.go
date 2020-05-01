@@ -1,21 +1,21 @@
 package easygtk
 
 import (
-	. "github.com/SilentGopherLnx/easygolang"
+	//	. "github.com/SilentGopherLnx/easygolang"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
 
-var table_keys map[uint]uint
+//var table_keys map[uint]uint
 
 func init() {
-	table_keys = make(map[uint]uint)
+	/*table_keys = make(map[uint]uint)
 	table_keys[gdk.KEY_Cyrillic_ya] = gdk.KEY_z  //RUSSIAN 'я'
 	table_keys[gdk.KEY_Cyrillic_ef] = gdk.KEY_a  //RUSSIAN 'ф'
 	table_keys[gdk.KEY_Cyrillic_che] = gdk.KEY_x //RUSSIAN 'ч'
 	table_keys[gdk.KEY_Cyrillic_es] = gdk.KEY_c  //RUSSIAN 'с'
-	table_keys[gdk.KEY_Cyrillic_em] = gdk.KEY_v  //RUSSIAN 'м'
+	table_keys[gdk.KEY_Cyrillic_em] = gdk.KEY_v  //RUSSIAN 'м'*/
 }
 
 func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int, uint) {
@@ -23,7 +23,7 @@ func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int, uint) {
 		eventObject := &gdk.EventButton{event}
 		//eventmotion:=gdk.EventMotionNewFromEvent(event)
 		key := 0
-		btn := eventObject.ButtonVal()
+		btn := eventObject.Button()
 		state := eventObject.State()
 		// switch btn {
 		// case gdk.KEY_leftpointer:
@@ -38,18 +38,19 @@ func GTK_MouseKeyOfEvent(event *gdk.Event) (int, int, int, uint) {
 	return 0, 0, 0, 0
 }
 
-func GTK_KeyboardKeyOfEvent(event *gdk.Event) (uint, uint) {
+func GTK_KeyboardKeyOfEvent(event *gdk.Event) (uint, uint, uint16) {
 	if event != nil {
 		eventObject := &gdk.EventKey{event}
 		key := eventObject.KeyVal()
+		en_key := eventObject.HardwareKeyCode()
 		state := eventObject.State()
 		//Prln("key:" + I2S(int(key)))
-		return key, state
+		return key, state, en_key
 	}
-	return 0, 0
+	return 0, 0, 0
 }
 
-func GTK_KeyboardTranslateLayoutEnglish(key uint, state uint) (uint, uint) {
+/*func GTK_KeyboardTranslateLayoutEnglish(key uint, state uint) (uint, uint) {
 	key2 := key
 	state2 := state
 	if state2 > 8192 { //RUSSIAN Ctrl 8196 == English Ctrl 4
@@ -65,7 +66,7 @@ func GTK_KeyboardTranslateLayoutEnglish(key uint, state uint) (uint, uint) {
 	Prln("key LOCALE : " + I2S(int(key)) + ", state=" + I2S(int(state)))
 	Prln("key ENGLISH: " + I2S(int(key2)) + ", state=" + I2S(int(state2)))
 	return key2, state2
-}
+}*/
 
 func GTK_KeyboardCtrlState(state uint) bool {
 	return state&gdk.GDK_CONTROL_MASK == gdk.GDK_CONTROL_MASK
