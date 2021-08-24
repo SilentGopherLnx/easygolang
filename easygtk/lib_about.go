@@ -16,9 +16,9 @@ import (
 func Dialog_About(w *gtk.Window, version, author, mail, repository, more string, flag *gdk.Pixbuf) {
 	dial, box := GTK_Dialog(w, "About")
 
-	lbl_version, _ := gtk.LabelNew("version: " + version)
+	lbl_app_version, _ := gtk.LabelNew("App version: " + version)
 	lbl_author, _ := gtk.LabelNew("by: " + author)
-	lbl_email, _ := gtk.LabelNew(mail)
+	lbl_email, _ := gtk.LabelNew("contact: " + mail)
 	lbl_github, _ := gtk.LabelNew(repository)
 
 	iconflag, _ := gtk.ImageNew()
@@ -26,10 +26,18 @@ func Dialog_About(w *gtk.Window, version, author, mail, repository, more string,
 
 	box.SetOrientation(gtk.ORIENTATION_VERTICAL)
 	box.Add(iconflag)
-	box.Add(lbl_version)
+	box.Add(lbl_app_version)
 	box.Add(lbl_author)
 	box.Add(lbl_email)
 	box.Add(lbl_github)
+
+	lbl_go_version, _ := gtk.LabelNew("Build by compiler: " + GetGolangVersion())
+	lbl_gtk_version, _ := gtk.LabelNew("GTK version: " + GTK_GetVersion())
+	lbl_gtk_version_wrapper, _ := gtk.LabelNew("gotk3 (GTK wrapper) version: " + GTK_GetVersionWrapper())
+
+	box.Add(lbl_go_version)
+	box.Add(lbl_gtk_version)
+	box.Add(lbl_gtk_version_wrapper)
 
 	if StringLength(more) > 0 {
 		lbl_more, _ := gtk.LabelNew("\n" + more)

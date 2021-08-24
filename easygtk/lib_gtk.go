@@ -10,6 +10,19 @@ import (
 	"github.com/gotk3/gotk3/pango"
 )
 
+func GTK_GetVersionWrapper() string {
+	return "0.6.1" // need to be checked every time
+}
+
+func GTK_GetVersion() string {
+	//if constant_mode {
+	//	return I2S(int(gtk.MajorVersion)) + "." + I2S(int(gtk.MinorVersion)) + "." + I2S(int(gtk.MicroVersion))
+	//} else {
+	// dpkg -s libgtk-3-0|grep '^Version'
+	return I2S(int(gtk.GetMajorVersion())) + "." + I2S(int(gtk.GetMinorVersion())) + "." + I2S(int(gtk.GetMicroVersion()))
+	//}
+}
+
 type GTK_RemoveAble interface {
 	GetChildren() *glib.List
 	Remove(gtk.IWidget)

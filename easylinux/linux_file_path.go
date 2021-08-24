@@ -244,7 +244,8 @@ func linuxFilePathProtocol_RealToVisual(path_real string) string {
 		if path2 == "/" {
 			path2 = ""
 		}
-		q, qerr = UrlQueryParse(StringReplace(StringReplace(protocol_args, ";", "#"), ",", ";"))
+		//q, qerr = UrlQueryParse(StringReplace(StringReplace(protocol_args, ";", "#"), ",", ";"))
+		q, qerr = UrlQueryParse(StringReplace(protocol_args, ",", "&"))
 		//Prln(protocol)
 		//Prln(protocol_args)
 		if qerr == nil {

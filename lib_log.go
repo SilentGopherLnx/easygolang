@@ -83,6 +83,7 @@ func Log_TypeDetail(t interface{}) string {
 func AboutVersion(version string) {
 	if AppHasArg("-v") {
 		Prln(version)
+		Prln(GetGolangVersion())
 		Prln("app  folder:[" + FolderLocation_App() + "]")
 		Prln("work folder:[" + FolderLocation_WorkDir() + "]")
 		Prln("home folder:[" + FolderLocation_UserHome() + "]")

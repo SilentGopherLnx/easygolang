@@ -86,6 +86,10 @@ func GoId() int {
 	return id
 }
 
+func GetGolangVersion() string {
+	return runtime.Version()
+}
+
 // funcAddr returns function value fn executable code address.
 func funcAddr(fn interface{}) uintptr {
 	// emptyInterface is the header for an interface{} value.

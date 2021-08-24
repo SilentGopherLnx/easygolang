@@ -69,7 +69,8 @@ func GTK_KeyboardKeyOfEvent(event *gdk.Event) (uint, uint, uint16) {
 }*/
 
 func GTK_KeyboardCtrlState(state uint) bool {
-	return state&gdk.GDK_CONTROL_MASK == gdk.GDK_CONTROL_MASK
+	//return state&gdk.GDK_CONTROL_MASK == gdk.GDK_CONTROL_MASK
+	return state&gdk.CONTROL_MASK == gdk.CONTROL_MASK
 }
 
 // func GTK_KeyboardCtrl(event *gdk.Event) bool {

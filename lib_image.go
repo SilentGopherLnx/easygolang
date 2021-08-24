@@ -198,7 +198,6 @@ func BlendColors(argb_back [4]float64, argb_over [4]float64, maxv float64) [4]in
 }
 
 func ImageSubImage(big image.Image, x0, y0, x1, y1 int) *image.RGBA {
-
 	w := MAXI(1, x1-x0)
 	h := MAXI(1, y1-y0)
 	img2 := image.NewRGBA(image.Rect(0, 0, w, h))
