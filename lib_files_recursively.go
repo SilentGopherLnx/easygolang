@@ -473,14 +473,21 @@ func FoldersRecursively_Move(mount_list [][2]string, file_or_dir os.FileInfo, pa
 
 // ================
 
+func FoldersRecursively_Search_Default(str string) string { // example
+	fname := StringDown(str)
+	fname = StringReplace(fname, "_", " ")
+	return fname
+}
+
 type folderWalker_searcher struct {
-	search     string
-	chan_found chan *FileReport
+	search        string
+	chan_found    chan *FileReport
+	string_modify func(string) string
 }
 
 func (m *folderWalker_searcher) WithFile(f os.FileInfo, regular bool, path_src string, path_dst string) {
 	if regular {
-		if StringFind(StringDown(f.Name()), m.search) > 0 {
+		if StringFind(m.string_modify(f.Name()), m.search) > 0 {
 			path, _ := FileSplitPathAndName(path_src)
 			f2 := NewFileReport(f, path, true)
 			m.chan_found <- &f2 //FilePathEndSlashRemove(path_src)
@@ -507,8 +514,8 @@ func (m *folderWalker_searcher) WithLink(f os.FileInfo, is_folder bool, path_src
 	return false
 }
 
-func FoldersRecursively_Search(mount_list [][2]string, dir os.FileInfo, path_real string, search string, chan_found chan *FileReport, kill *ABool) { // current_dir *AString
-	m := &folderWalker_searcher{search: StringDown(search), chan_found: chan_found}
+func FoldersRecursively_Search(mount_list [][2]string, dir os.FileInfo, path_real string, search string, chan_found chan *FileReport, kill *ABool, modifyfunc func(string) string) { // current_dir *AString
+	m := &folderWalker_searcher{search: modifyfunc(search), chan_found: chan_found, string_modify: modifyfunc}
 	FoldersRecursively_Walk(mount_list, dir, path_real, "", m, 0, kill)
 	close(chan_found)
 }

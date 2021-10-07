@@ -128,7 +128,7 @@ func FileMake(pathname string) bool {
 
 func FileRename(path_src string, path_dst string) (bool, string) {
 	if FileExists(path_dst) {
-		return false, "Not exist"
+		return false, "Already exist"
 	}
 	err := os.Rename(path_src, path_dst)
 	if err != nil {

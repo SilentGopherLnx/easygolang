@@ -118,29 +118,46 @@ func SMB_GetPublicFolders(name_or_ip string) ([]string, error) {
 	return arr, nil
 }
 
-func SMB_IsMount(p *LinuxPath, folder string, mountlist [][2]string) bool {
+// if path of "p" is smb://pc_name/
+func SMB_IsMounted(p *LinuxPath, folder string, mountlist [][2]string) bool {
 	p2 := NewLinuxPath(true)
 	p2.SetVisual(p.GetVisual() + folder + "/")
 	return LinuxFolderIsMountPoint(mountlist, p2.GetReal())
 }
 
-func SMB_CheckVirtualPath(url string) (bool, string, string) {
+func SMB_CheckCanMount(url string, mountlist [][2]string) (bool, string, string, bool) {
+	is_smb, pc_name, netfolder, smb_hasmore := SMB_CheckPath(url)
+	//Prln("SMB_CheckCanMount: " + B2S_YN(is_smb) + " " + pc_name + "/" + netfolder)
+	if is_smb && StringLength(pc_name) > 0 && StringLength(netfolder) > 0 {
+		vpath := SMB_SLASH2 + pc_name + "/" + netfolder + "/"
+		//Prln("vpath: " + vpath)
+		p2 := NewLinuxPath(true)
+		p2.SetUrl(vpath)
+		is_mounted := LinuxFolderIsMountPoint(mountlist, p2.GetReal())
+		if !is_mounted {
+			return true, pc_name, netfolder, smb_hasmore
+		}
+	}
+	return false, pc_name, netfolder, false
+}
+
+func SMB_CheckPath(url string) (bool, string, string, bool) {
 	len_smb := StringLength(SMB_SLASH2)
 	if url == SMB_SLASH2 {
-		return true, "", ""
+		return true, "", "", false
 	}
 	if StringPart(url, 1, len_smb) == SMB_SLASH2 {
 		pc_name := StringPart(url, len_smb+1, 0)
 		pc_name = FilePathEndSlashRemove(pc_name)
-		if StringFind(pc_name, GetOS_Slash()) == 0 {
-			return false, pc_name, ""
+		if StringFind(pc_name, "/") == 0 {
+			return true, pc_name, "", false
 		}
 		arr := StringSplit(pc_name, "/")
-		if len(arr) == 2 {
-			return false, arr[0], arr[1]
+		if len(arr) >= 2 {
+			return true, arr[0], arr[1], len(arr) > 2
 		}
 	}
-	return false, "", ""
+	return false, "", "", false
 }
 
 func SMB_UnMount(pc_name string, folder_name string) error {
@@ -155,6 +172,7 @@ func SMB_UnMount(pc_name string, folder_name string) error {
 	return nil
 }
 
+//?
 func SMB_MountLoginAsk(pc_name string, folder_name string) (bool, error) {
 	return sMB_MountLoginUse(pc_name, folder_name, "", "")
 }

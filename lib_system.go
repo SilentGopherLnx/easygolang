@@ -53,6 +53,7 @@ func RuntimeLockOSThread() {
 
 func Prln(v string) {
 	fmt.Println(v)
+	//println(v)
 }
 
 func Scln() string {

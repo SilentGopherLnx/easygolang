@@ -38,8 +38,8 @@ func LinuxGetMountList() [][2]string {
 	return arr
 }
 
-func LinuxFolderIsMountPoint(list [][2]string, path string) bool {
-	path2 := FolderPathEndSlash(path)
+func LinuxFolderIsMountPoint(list [][2]string, path_real string) bool {
+	path2 := FolderPathEndSlash(path_real)
 	for _, pair := range list[:] {
 		if FolderPathEndSlash(pair[1]) == path2 {
 			return true

@@ -2,16 +2,18 @@ package easygolang
 
 const FILE_COMMENT = "#"
 
-const OPTIONS_TYPE_STRING = "String"
-const OPTIONS_TYPE_ARRAY = "Array"
 const OPTIONS_TYPE_BOOLEAN = "Boolean"
 const OPTIONS_TYPE_INTEGER = "Integer"
+const OPTIONS_TYPE_STRING = "String"
+const OPTIONS_TYPE_ARRAY = "Array"
+const OPTIONS_TYPE_ARRAY_CODED = "ArrayCoded"
 
 type OptionsStorageItem struct {
 	value_storaged string
 	value_default  string
-	value_type     string //string,num,bool,arr
+	value_type     string //num,bool,string,arr,arr_coded
 	values_allowed []string
+	values_titles  []string
 	value_min      float64
 	value_max      float64
 	value_step     float64
@@ -31,12 +33,17 @@ func (s *OptionsStorage) AddRecord_String(order int, key string, value_default s
 	s.arr[key] = &OptionsStorageItem{value_type: OPTIONS_TYPE_STRING, value_storaged: value_default, value_default: value_default, key_comment: key_comment, file_order: order}
 }
 
-func (s *OptionsStorage) AddRecord_Array(order int, key string, value_default string, values_allowed []string, key_comment string) {
+func (s *OptionsStorage) AddRecord_Array(order int, key string, value_default string, values_allowed []string, values_titles []string, key_comment string) {
 	v := values_allowed
 	if len(v) == 0 {
 		v = []string{""}
 	}
-	s.arr[key] = &OptionsStorageItem{value_type: OPTIONS_TYPE_ARRAY, value_storaged: value_default, value_default: value_default, values_allowed: v, key_comment: key_comment, file_order: order}
+	oi := &OptionsStorageItem{value_type: OPTIONS_TYPE_ARRAY, value_storaged: value_default, value_default: value_default, values_allowed: v, values_titles: v, key_comment: key_comment, file_order: order}
+	if len(values_titles) > 0 && len(values_titles) == len(values_allowed) {
+		oi.value_type = OPTIONS_TYPE_ARRAY_CODED
+		oi.values_titles = values_titles
+	}
+	s.arr[key] = oi
 }
 
 func (s *OptionsStorage) AddRecord_Boolean(order int, key string, value_default bool, key_comment string) {
@@ -63,6 +70,14 @@ func (s *OptionsStorage) GetRecordValuesArray(key string) []string {
 	item := s.arr[key]
 	if item != nil {
 		return item.values_allowed
+	}
+	return []string{}
+}
+
+func (s *OptionsStorage) GetRecordTitlesArray(key string) []string {
+	item := s.arr[key]
+	if item != nil {
+		return item.values_titles
 	}
 	return []string{}
 }
@@ -100,11 +115,6 @@ func (s *OptionsStorage) RecordsValues_Load(fname string) {
 				if item != nil {
 					strvalue := StringReplace(StringReplace(value, "\\n", "\n"), "\\\\", "\\")
 					switch item.value_type {
-					case OPTIONS_TYPE_STRING:
-						item.value_storaged = strvalue
-					case OPTIONS_TYPE_ARRAY:
-						item.value_storaged = strvalue
-						s.ValueSetArrayIndex(key, s.ValueGetArrayIndex(key))
 					case OPTIONS_TYPE_BOOLEAN:
 						if strvalue == B2S_TF(true) || strvalue == B2S_TF(false) {
 							item.value_storaged = strvalue
@@ -119,6 +129,11 @@ func (s *OptionsStorage) RecordsValues_Load(fname string) {
 							intv = S2I(item.value_default)
 						}
 						s.ValueSetInteger(key, intv)
+					case OPTIONS_TYPE_STRING:
+						item.value_storaged = strvalue
+					case OPTIONS_TYPE_ARRAY, OPTIONS_TYPE_ARRAY_CODED:
+						item.value_storaged = strvalue
+						s.ValueSetArrayIndex(key, s.ValueGetArrayIndex(key))
 					}
 				}
 			}

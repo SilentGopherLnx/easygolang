@@ -218,36 +218,8 @@ func GTK_SpinnerActive(spinner *gtk.Spinner, def bool) bool {
 // ===========
 
 func GTK_OptionsWidget(optst *OptionsStorage, key string, changed_event func(key string)) gtk.IWidget {
-	switch optst.GetRecordType(key) {
-	case OPTIONS_TYPE_STRING:
-		widget, _ := gtk.EntryNew()
-		widget.SetText(optst.ValueGetString(key))
-		widget.Connect("changed", func() { //https://developer.gnome.org/gtk3/unstable/GtkEditable.html#GtkEditable-changed
-			Prln("EVENT_FOR_TEXTENTRY: changed")
-			text, _ := widget.GetText()
-			optst.ValueSetString(key, text)
-			if changed_event != nil {
-				changed_event(key)
-			}
-		})
-		widget.SetHExpand(true)
-		return widget
-	case OPTIONS_TYPE_ARRAY:
-		widget, _ := gtk.ComboBoxTextNew() //https://developer.gnome.org/gtk3/stable/GtkComboBoxText.html
-		values := optst.GetRecordValuesArray(key)
-		for j := 0; j < len(values); j++ {
-			widget.AppendText(values[j])
-		}
-		widget.SetActive(optst.ValueGetArrayIndex(key))
-		widget.Connect("changed", func() {
-			Prln("EVENT_FOR_COMBOBOX: changed")
-			optst.ValueSetArrayIndex(key, widget.GetActive())
-			if changed_event != nil {
-				changed_event(key)
-			}
-		})
-		widget.SetHExpand(true)
-		return widget
+	rt := optst.GetRecordType(key)
+	switch rt {
 	case OPTIONS_TYPE_BOOLEAN:
 		widget, _ := gtk.CheckButtonNew()
 		widget.SetActive(optst.ValueGetBoolean(key))
@@ -273,8 +245,44 @@ func GTK_OptionsWidget(optst *OptionsStorage, key string, changed_event func(key
 		})
 		widget.SetHExpand(true)
 		return widget
+	case OPTIONS_TYPE_STRING:
+		widget, _ := gtk.EntryNew()
+		widget.SetText(optst.ValueGetString(key))
+		widget.Connect("changed", func() { //https://developer.gnome.org/gtk3/unstable/GtkEditable.html#GtkEditable-changed
+			Prln("EVENT_FOR_TEXTENTRY: changed")
+			text, _ := widget.GetText()
+			optst.ValueSetString(key, text)
+			if changed_event != nil {
+				changed_event(key)
+			}
+		})
+		widget.SetHExpand(true)
+		return widget
+	case OPTIONS_TYPE_ARRAY, OPTIONS_TYPE_ARRAY_CODED:
+		widget, _ := gtk.ComboBoxTextNew() //https://developer.gnome.org/gtk3/stable/GtkComboBoxText.html
+		txt_values := optst.GetRecordValuesArray(key)
+		if rt == OPTIONS_TYPE_ARRAY_CODED {
+			txt_values = optst.GetRecordTitlesArray(key)
+		}
+		for j := 0; j < len(txt_values); j++ {
+			widget.AppendText(txt_values[j])
+		}
+		widget.SetActive(optst.ValueGetArrayIndex(key))
+		widget.Connect("changed", func() {
+			optst.ValueSetArrayIndex(key, widget.GetActive())
+			Prln("EVENT_FOR_COMBOBOX: changed " + optst.ValueGetString(key))
+			if changed_event != nil {
+				changed_event(key)
+			}
+		})
+		widget.SetHExpand(true)
+		return widget
 	}
 	return nil
+}
+
+func GTK_KEY_Enter() uint {
+	return 65293
 }
 
 // gboolean is_visible_in (GtkWidget *child, GtkWidget *scrolled){

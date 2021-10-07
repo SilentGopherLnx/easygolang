@@ -14,7 +14,7 @@ import (
 )
 
 func Dialog_About(w *gtk.Window, version, author, mail, repository, more string, flag *gdk.Pixbuf) {
-	dial, box := GTK_Dialog(w, "About")
+	dial, box := GTK_Dialog(w, "About is App")
 
 	lbl_app_version, _ := gtk.LabelNew("App version: " + version)
 	lbl_author, _ := gtk.LabelNew("by: " + author)

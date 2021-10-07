@@ -26,6 +26,12 @@ func TimeSecondsSub(start Time, finished Time) float64 {
 	return delta.Seconds()
 }
 
+func TimeIsSorted(time1 Time, time2 Time) bool {
+	today := time.Time(time1)
+	tomorrow := time.Time(time2)
+	return today.Before(tomorrow)
+}
+
 func TimeStr(t Time, seconds bool) string {
 	t2 := time.Time(t)
 	s := ""
